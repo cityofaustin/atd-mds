@@ -135,6 +135,7 @@ dmypy.json
 .idea/
 .vscode/
 old/
+misc/
 
 # Protected Files
 secrets.py
