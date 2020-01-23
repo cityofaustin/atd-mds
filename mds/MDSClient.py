@@ -16,7 +16,8 @@ class MDSClient:
         "provider",
         "default_client",
         "auth_client",
-        "mds_client")
+        "mds_client",
+    )
 
     def __init__(self, config={}, **kwargs):
         """
@@ -78,9 +79,12 @@ class MDSClient:
         :param end_time_unix:
         :return:
         """
-        return self.mds_client.get_trips(start_time=start_time_unix, end_time=end_time_unix)
+        return self.mds_client.get_trips(
+            start_time=start_time_unix, end_time=end_time_unix
+        )
 
     def show_config(self):
+        print(f"Current MDS version loaded: {self.mds_client.version}")
         print(json.dumps(self.mds_client.config))
 
     def authenticate(self):
