@@ -17,12 +17,14 @@ class MDSClient:
         "default_client",
         "auth_client",
         "mds_client",
+        "custom_authentication",
     )
 
-    def __init__(self, config={}, **kwargs):
+    def __init__(self, config={}, custom_authentication=None, **kwargs):
         """
         Constructor for this class
         :param dict config: A dictionary of properties.
+        :param function custom_authentication: A python function to use for authentication
         :param dic kwargs: Any additional parameters passed to subclasses
 
         Parameters:
@@ -45,8 +47,13 @@ class MDSClient:
         # Assume authenticated is False
         self.authenticated = False
 
+        # Try to find a custom authentication function, assume None
+        self.custom_authentication = custom_authentication
+
         # Initialize authentication client
-        self.auth_client = MDSAuth(config=self.config)
+        self.auth_client = MDSAuth(
+            config=self.config, custom_function=self.custom_authentication
+        )
 
         # Initialize MDS Client
         self.mds_client = self.load_mds_client(
@@ -84,10 +91,18 @@ class MDSClient:
         )
 
     def show_config(self):
+        """
+        Prints the current version & configuration of the client
+        :return:
+        """
         print(f"Current MDS version loaded: {self.mds_client.version}")
         print(json.dumps(self.mds_client.config))
 
     def authenticate(self):
+        """
+        It authenticates the client using the provided configuration
+        :return:
+        """
         print("MDSClient::authenticate() Authenticating...")
         self.headers = self.auth_client.authenticate()
         print("MDSClient::authenticate() Checking headers...")
