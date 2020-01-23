@@ -131,5 +131,10 @@ dmypy.json
 # Env files
 *.env
 
+# IDEs
+.idea/
+.vscode/
+old/
+
 # Protected Files
 secrets.py
