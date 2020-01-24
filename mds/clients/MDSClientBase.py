@@ -106,3 +106,12 @@ class MDSClientBase:
             params=self.params,
             headers=self.headers
         )
+    
+    def set_paging(self, paging):
+        self.paging = paging
+
+    def set_interval(self, interval):
+        self.interval = interval
+
+    def set_timeout(self, timeout):
+        self.timeout = timeout
