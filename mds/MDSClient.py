@@ -4,6 +4,10 @@
 from .clients import *
 from .MDSAuth import MDSAuth
 
+# Debug & Logging
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 class MDSClient:
     __slots__ = (
@@ -40,7 +44,6 @@ class MDSClient:
         self.version = self.config.get("version", "0.2.0")
         # Try to find the default_class (an MDS class override) or assume None
         self.custom_client = self.config.get("custom_client", None)
-
         # Assume the headers to be empty
         self.mds_headers = None
         self.auth_headers = None
@@ -60,6 +63,7 @@ class MDSClient:
             version=self.version, custom=self.custom_client,
         )(config=self.config)
 
+        self._load_custom_headers()
         self._authenticate()
 
     @staticmethod
@@ -88,29 +92,29 @@ class MDSClient:
         :param end_time:
         :return:
         """
-        print(f"MDSClient::get_trips() Getting trips for start_time: {start_time}, end_time: {end_time} ")
+        logging.debug(f"MDSClient::get_trips() Getting trips for start_time: {start_time}, end_time: {end_time} ")
         return self.mds_client.get_trips(
             start_time=start_time, end_time=end_time
         )
 
     def show_config(self):
         """
-        Prints the current version & configuration of the client
+        logging.debugs the current version & configuration of the client
         :return:
         """
-        print(f"MDSClient::show_config() Current MDS version loaded: {self.mds_client.version}")
-        print(self.mds_client.config)
+        logging.debug(f"MDSClient::show_config() Current MDS version loaded: {self.mds_client.version}")
+        logging.debug(self.mds_client.config)
 
     def _authenticate(self):
         """
         It authenticates the client using the provided configuration
         :return:
         """
-        print("MDSClient::authenticate() Generating headers...")
+        logging.debug("MDSClient::authenticate() Generating headers...")
         self.auth_headers = self.auth_client.authenticate()
-        print("MDSClient::authenticate() Checking headers...")
+        logging.debug("MDSClient::authenticate() Checking headers...")
         if self.auth_headers:
-            print("MDSClient::authenticate() Authentication succeeded...")
+            logging.debug("MDSClient::authenticate() Authentication succeeded...")
             self.authenticated = True
 
             self.mds_client.set_header(
@@ -118,8 +122,8 @@ class MDSClient:
             )
             self.mds_client.render_settings(headers=self.auth_headers)
 
-            print("MDSClient::authenticate() Final headers: ")
-            print(self.mds_client.get_headers())
+            logging.debug("MDSClient::authenticate() Final headers: ")
+            logging.debug(self.mds_client.get_headers())
 
         else:
-            print("MDSClient::authenticate() Authentication failed")
+            logging.debug("MDSClient::authenticate() Authentication failed")
