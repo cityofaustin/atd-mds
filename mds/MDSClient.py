@@ -85,6 +85,12 @@ class MDSClient:
                 "0.4.0": MDSClient040,
             }.get(version, custom)
 
+    def _load_custom_headers(self):
+        logging.debug(f"MDSClient::get_trips() Loading custom headers...")
+        custom_headers = self.config.get("headers", {})
+        for key, value in custom_headers.items():
+            self.mds_client.set_header(key=key, value=value)
+
     def get_trips(self, start_time, end_time):
         """
         Returns the trips for the current client
