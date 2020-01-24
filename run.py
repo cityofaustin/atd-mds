@@ -64,10 +64,14 @@ def run(provider_name, time_format):
         # Show the configuration
         mds_client.show_config()
 
-        mds_client.get_trips(
+        trips = mds_client.get_trips(
             start_time=my_time.get_time_start(utc=True, unix=True),
             end_time=my_time.get_time_end(utc=True, unix=True)
         )
+
+        print("\n\nResponse:\n")
+        print(json.dumps(trips))
+        print("\n\n")
 
     else:
         print("-------------------------------------------------")
