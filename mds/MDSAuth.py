@@ -25,6 +25,7 @@ class MDSAuth:
         self.config = config
         self.custom_function = custom_function
         auth_type = self.config.get("auth_type", None)
+        self.headers = None
 
         if auth_type:
             print(f"MDSAuth::__init__() Authentication method: {auth_type}")
@@ -33,9 +34,13 @@ class MDSAuth:
                 "bearer": self.mds_auth_token,
                 "basic": self.mds_http_basic,
                 "custom": self.mds_custom_auth,
-            }.get(auth_type.lower(), custom_function)
+            }.get(auth_type.lower(), None)
+
+            if not self.authenticate:
+                raise Exception(
+                    f"MDSAuth::__init__() Invalid authentication method provided, auth_type: '{auth_type}'")
         else:
-            raise Exception(f"MDSAuth::__init__() Invalid or No authentication method provided, auth_type: '{auth_type}'")
+            raise Exception(f"MDSAuth::__init__() No authentication method provided, auth_type: '{auth_type}'")
 
     def mds_oauth(self):
         print("MDSAuth::mds_oauth() Running OAuth authentication")
@@ -43,11 +48,26 @@ class MDSAuth:
 
     def mds_auth_token(self):
         print("MDSAuth::mds_auth_token() Running Token authentication")
-        pass
+        self.headers = {
+            "Authorization": f'Bearer {self.config["token"]}'
+        }
+        return self.headers
 
     def mds_http_basic(self):
         print("MDSAuth::mds_oauth() Running HTTP Basic authentication")
-        pass
+        auth_data = self.config.get("auth_data", None)
+        if auth_data:
+            username = auth_data.get("username", None)
+            password = auth_data.get("password", None)
+            encoded_creds = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("utf-8")
+            self.headers = {
+                "Authorization": f'Basic {encoded_creds}'
+            }
+            return self.headers
+        else:
+            raise Exception("No credentials provided")
+
+        return None
 
     def mds_auth_custom(self):
         print("MDSAuth::mds_oauth() Running Custom authentication")
@@ -59,8 +79,3 @@ class MDSAuth:
     def _gather_oauth_token(self):
         print("MDSAuth::_gather_oauth_token() Gathering OAuth token")
         pass
-
-    def _render_headers(self):
-        print("MDSAuth::_render_headers() Rendering headers")
-        self.headers = None
-        return self.headers
