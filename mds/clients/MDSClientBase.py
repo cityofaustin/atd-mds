@@ -1,5 +1,9 @@
 import requests
 
+# Debug & Logging
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 class MDSClientBase:
 
@@ -27,16 +31,16 @@ class MDSClientBase:
         pass
 
     def __request(self, **kwargs):
-        print(f"MDSClientBase::__request() Making request...")
+        logging.debug(f"MDSClientBase::__request() Making request...")
         data = {}
         mds_endpoint = kwargs.get("mds_endpoint", {})
         mds_params = kwargs.get("params", {})
         mds_headers = kwargs.get("headers", {})
 
-        print(f"MDSClientBase::__request() Details:")
-        print(f"MDSClientBase::__request() mds_endpoint: {mds_endpoint}")
-        print(f"MDSClientBase::__request() mds_params: {mds_params}")
-        print(f"MDSClientBase::__request() mds_headers: {mds_headers}")
+        logging.debug(f"MDSClientBase::__request() Details:")
+        logging.debug(f"MDSClientBase::__request() mds_endpoint: {mds_endpoint}")
+        logging.debug(f"MDSClientBase::__request() mds_params: {mds_params}")
+        logging.debug(f"MDSClientBase::__request() mds_headers: {mds_headers}")
 
         response = requests.get(
             mds_endpoint,
@@ -72,28 +76,28 @@ class MDSClientBase:
         return data
 
     def set_header(self, key, value):
-        print(f"MDSClientBase::set_header() Set header k: '{key}', v: '{value}'")
+        logging.debug(f"MDSClientBase::set_header() Set header k: '{key}', v: '{value}'")
         self.headers[key] = value
 
     def render_settings(self, headers):
         # 1. Consolidate current headers and new headers
-        print("MDSClientBase::render_settings() Rendering headers")
+        logging.debug("MDSClientBase::render_settings() Rendering headers")
         self.headers = {**self.headers, **headers}
 
         # 2. Initialize Param Schema & Overrides
-        print("MDSClientBase::render_settings() Rendering parameters")
+        logging.debug("MDSClientBase::render_settings() Rendering parameters")
         params_override = self.config.get("mds_param_override", None)
         if isinstance(params_override, dict):
             for key, value in params_override.items():
                 self.param_schema[key] = value
 
     def get_headers(self):
-        print("MDSClientBase::get_headers() returning headers")
+        logging.debug("MDSClientBase::get_headers() returning headers")
         return self.headers
 
     def get_trips(self, start_time, end_time):
 
-        print("MDSClientBase::get_trips() Getting trips: %s %s " % (start_time, end_time))
+        logging.debug("MDSClientBase::get_trips() Getting trips: %s %s " % (start_time, end_time))
         self.params[self.param_schema["start_time"]] = start_time
         self.params[self.param_schema["end_time"]] = end_time
 
