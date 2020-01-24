@@ -13,7 +13,7 @@ class MDSClient:
         "auth_headers",
         "version",
         "provider",
-        "default_client",
+        "custom_client",
         "auth_client",
         "mds_client",
         "custom_authentication",
@@ -39,7 +39,7 @@ class MDSClient:
         # Tries to find version in the config, or assumes 0.2.0
         self.version = self.config.get("version", "0.2.0")
         # Try to find the default_class (an MDS class override) or assume None
-        self.default_client = self.config.get("default_class", None)
+        self.custom_client = self.config.get("custom_client", None)
 
         # Assume the headers to be empty
         self.mds_headers = None
@@ -57,29 +57,29 @@ class MDSClient:
 
         # Initialize MDS Client
         self.mds_client = self.load_mds_client(
-            version=self.version, default=self.default_client,
+            version=self.version, custom=self.custom_client,
         )(config=self.config)
 
         self._authenticate()
 
     @staticmethod
-    def load_mds_client(version, default=None):
+    def load_mds_client(version, custom=None):
         """
         Returns the class reference to be initialized later.
         :param str version: The version of MDS to initialize
-        :param object default: MDS Class override option
+        :param object custom: MDS Class override option
         :return object: The MDS class to be used
         """
         # Check for class override
-        if default is not None:
-            return default
+        if custom is not None:
+            return custom
         # Proceed with normal version check & load class
         else:
             return {
                 "0.2.0": MDSClient020,
                 "0.3.0": MDSClient030,
                 "0.4.0": MDSClient040,
-            }.get(version, default)
+            }.get(version, custom)
 
     def get_trips(self, start_time, end_time):
         """
@@ -100,7 +100,6 @@ class MDSClient:
         """
         print(f"MDSClient::show_config() Current MDS version loaded: {self.mds_client.version}")
         print(self.mds_client.config)
-
 
     def _authenticate(self):
         """
