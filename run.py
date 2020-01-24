@@ -42,11 +42,7 @@ def run(provider_name, time_format):
         time_zone="US/Central",  # US/Central
     )
 
-    # This is a time start
-    time_start = my_time.get_time_start(utc=True)
-    time_end = my_time.get_time_end(utc=True)
-
-    # This is a time end
+    # Output generated time stamps on screen
     click.echo("Time Start (iso):\t%s" % my_time.get_time_start())
     click.echo("Time End   (iso):\t%s" % my_time.get_time_end())
     click.echo("Running: %s (time format: %s)" % (provider_name, time_format))
