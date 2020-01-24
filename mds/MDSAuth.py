@@ -5,6 +5,10 @@
 import base64
 import requests
 
+# Debug & Logging
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 class MDSAuth:
     __slots__ = (
@@ -28,7 +32,7 @@ class MDSAuth:
         self.headers = None
 
         if auth_type:
-            print(f"MDSAuth::__init__() Authentication method: {auth_type}")
+            logging.debug(f"MDSAuth::__init__() Authentication method: {auth_type}")
             self.authenticate = {
                 "oauth": self.mds_oauth,
                 "bearer": self.mds_auth_token,
@@ -43,18 +47,18 @@ class MDSAuth:
             raise Exception(f"MDSAuth::__init__() No authentication method provided, auth_type: '{auth_type}'")
 
     def mds_oauth(self):
-        print("MDSAuth::mds_oauth() Running OAuth authentication")
+        logging.debug("MDSAuth::mds_oauth() Running OAuth authentication")
         pass
 
     def mds_auth_token(self):
-        print("MDSAuth::mds_auth_token() Running Token authentication")
+        logging.debug("MDSAuth::mds_auth_token() Running Token authentication")
         self.headers = {
             "Authorization": f'Bearer {self.config["token"]}'
         }
         return self.headers
 
     def mds_http_basic(self):
-        print("MDSAuth::mds_oauth() Running HTTP Basic authentication")
+        logging.debug("MDSAuth::mds_oauth() Running HTTP Basic authentication")
         auth_data = self.config.get("auth_data", None)
         if auth_data:
             username = auth_data.get("username", None)
@@ -70,12 +74,12 @@ class MDSAuth:
         return None
 
     def mds_auth_custom(self):
-        print("MDSAuth::mds_oauth() Running Custom authentication")
+        logging.debug("MDSAuth::mds_oauth() Running Custom authentication")
         pass
 
     def mds_custom_auth(self):
         return self.custom_function(self.config)
 
     def _gather_oauth_token(self):
-        print("MDSAuth::_gather_oauth_token() Gathering OAuth token")
+        logging.debug("MDSAuth::_gather_oauth_token() Gathering OAuth token")
         pass
