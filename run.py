@@ -9,6 +9,12 @@ from mds import *
 
 from secrets import PROVIDERS
 
+# Debug & Logging
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger()
+logger.disabled = False
+
 
 @click.command()
 @click.option(
