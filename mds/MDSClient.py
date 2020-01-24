@@ -4,14 +4,13 @@
 from .clients import *
 from .MDSAuth import MDSAuth
 
-import json
-
 
 class MDSClient:
     __slots__ = (
         "config",
         "authenticated",
-        "headers",
+        "mds_headers",
+        "auth_headers",
         "version",
         "provider",
         "default_client",
@@ -43,7 +42,8 @@ class MDSClient:
         self.default_client = self.config.get("default_class", None)
 
         # Assume the headers to be empty
-        self.headers = None
+        self.mds_headers = None
+        self.auth_headers = None
         # Assume authenticated is False
         self.authenticated = False
 
@@ -59,6 +59,8 @@ class MDSClient:
         self.mds_client = self.load_mds_client(
             version=self.version, default=self.default_client,
         )(config=self.config)
+
+        self._authenticate()
 
     @staticmethod
     def load_mds_client(version, default=None):
@@ -79,15 +81,16 @@ class MDSClient:
                 "0.4.0": MDSClient040,
             }.get(version, default)
 
-    def get_trips(self, start_time_unix, end_time_unix):
+    def get_trips(self, start_time, end_time):
         """
         Returns the trips for the current client
-        :param start_time_unix:
-        :param end_time_unix:
+        :param start_time:
+        :param end_time:
         :return:
         """
+        print(f"MDSClient::get_trips() Getting trips for start_time: {start_time}, end_time: {end_time} ")
         return self.mds_client.get_trips(
-            start_time=start_time_unix, end_time=end_time_unix
+            start_time=start_time, end_time=end_time
         )
 
     def show_config(self):
@@ -95,19 +98,29 @@ class MDSClient:
         Prints the current version & configuration of the client
         :return:
         """
-        print(f"Current MDS version loaded: {self.mds_client.version}")
-        print(json.dumps(self.mds_client.config))
+        print(f"MDSClient::show_config() Current MDS version loaded: {self.mds_client.version}")
+        print(self.mds_client.config)
 
-    def authenticate(self):
+
+    def _authenticate(self):
         """
         It authenticates the client using the provided configuration
         :return:
         """
-        print("MDSClient::authenticate() Authenticating...")
-        self.headers = self.auth_client.authenticate()
+        print("MDSClient::authenticate() Generating headers...")
+        self.auth_headers = self.auth_client.authenticate()
         print("MDSClient::authenticate() Checking headers...")
-        if self.headers:
+        if self.auth_headers:
             print("MDSClient::authenticate() Authentication succeeded...")
             self.authenticated = True
+
+            self.mds_client.set_header(
+                "Accept", f"application/vnd.mds.provider+json;version={self.version[:3]}"
+            )
+            self.mds_client.render_settings(headers=self.auth_headers)
+
+            print("MDSClient::authenticate() Final headers: ")
+            print(self.mds_client.get_headers())
+
         else:
             print("MDSClient::authenticate() Authentication failed")
