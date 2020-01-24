@@ -10,7 +10,6 @@ from mds import *
 from secrets import PROVIDERS
 
 
-
 @click.command()
 @click.option(
     "--provider_name",
@@ -40,7 +39,7 @@ def run(provider_name, time_format):
     my_time = MDSTimeZone(
         date_time_now=datetime(2020, 1, 11, 17),
         offset=3600,  # One hour
-        time_zone="US/Central"  # US/Central
+        time_zone="US/Central",  # US/Central
     )
 
     # This is a time start
@@ -60,16 +59,15 @@ def run(provider_name, time_format):
     # Do not proceed if the provider was not found...
     if mds_client_configuration:
         # Initialize the MDS Client
-        mds_client = MDSClient(
-            config=PROVIDERS[provider_name],
-            provider=provider_name
-        )
+        mds_client = MDSClient(config=PROVIDERS[provider_name], provider=provider_name)
 
         # Show the configuration
         mds_client.show_config()
-        # Authenticate
-        mds_client.authenticate()
 
+        mds_client.get_trips(
+            start_time=my_time.get_time_start(utc=True, unix=True),
+            end_time=my_time.get_time_end(utc=True, unix=True)
+        )
 
     else:
         print("-------------------------------------------------")
@@ -87,9 +85,5 @@ def run(provider_name, time_format):
     )
 
 
-
 if __name__ == "__main__":
     run()
-
-
-
