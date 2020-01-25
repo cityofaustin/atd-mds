@@ -49,11 +49,11 @@ def run(provider_name, time_format):
     )
 
     # Output generated time stamps on screen
-    click.echo("Time Start (iso):\t%s" % my_time.get_time_start())
-    click.echo("Time End   (iso):\t%s" % my_time.get_time_end())
-    click.echo("Running: %s (time format: %s)" % (provider_name, time_format))
-    click.echo("time_start (unix):\t%s" % (my_time.get_time_start(utc=True, unix=True)))
-    click.echo("time_end   (unix):\t%s" % (my_time.get_time_end(utc=True, unix=True)))
+    logging.debug("Time Start (iso):\t%s" % my_time.get_time_start())
+    logging.debug("Time End   (iso):\t%s" % my_time.get_time_end())
+    logging.debug("Running: %s (time format: %s)" % (provider_name, time_format))
+    logging.debug("time_start (unix):\t%s" % (my_time.get_time_start(utc=True, unix=True)))
+    logging.debug("time_end   (unix):\t%s" % (my_time.get_time_end(utc=True, unix=True)))
 
     # Fetch the configuration, assume None if not found
     mds_client_configuration = PROVIDERS.get(provider_name, None)
@@ -71,20 +71,20 @@ def run(provider_name, time_format):
             end_time=my_time.get_time_end(utc=True, unix=True)
         )
 
-        print("\n\nResponse:\n")
-        print(json.dumps(trips))
-        print("\n\n")
+        logging.debug("\n\nResponse:\n")
+        click.echo(json.dumps(trips))
+        logging.debug("\n\n")
 
     else:
-        print("-------------------------------------------------")
-        print(f"Error, Could not find provider: {provider_name}")
-        print("-------------------------------------------------")
+        logging.debug("-------------------------------------------------")
+        logging.debug(f"Error, Could not find provider: {provider_name}")
+        logging.debug("-------------------------------------------------")
 
     # Calculate & print overall time
     end = time.time()
     hours, rem = divmod(end - start, 3600)
     minutes, seconds = divmod(rem, 60)
-    print(
+    logging.debug(
         "Overall process finished in: {:0>2}:{:0>2}:{:05.2f}".format(
             int(hours), int(minutes), seconds
         )
