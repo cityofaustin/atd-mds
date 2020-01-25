@@ -13,9 +13,16 @@ logging.basicConfig(
 class MDSClient020(MDSClientBase):
     version = "0.2.0"
 
+    # Specify the name for each parameter:
+    # param_schema = {
+    #   param_name_in_configuration: param_name_in_mds_v0_2_0
+    # }
     param_schema = {
         "start_time": "start_time",
         "end_time": "end_time",
+        "bbox": "bbox",
+        "device_id": "device_id",
+        "vehicle_id": "vehicle_id",
     }
 
     def __init__(self, config):
@@ -23,91 +30,106 @@ class MDSClient020(MDSClientBase):
 
     @staticmethod
     def _has_trips(data):
+        """
+        Returns True if the data contains trips
+        :param dict data: The response data as provided by self.__request
+        :return bool:
+        """
         return len(data.get("payload", {}).get("data", {}).get("trips", [])) > 0
 
     @staticmethod
     def _has_data(data):
+        """
+        Returns True if data has any valid content.
+        :param dict data: The response data as provided by self.__request
+        :return bool:
+        """
         return len(data.get("payload", {}).get("data", {})) > 0
 
     @staticmethod
     def _has_next_link(data):
+        """
+        Returns true if data contains a valid link to the next page
+        :param dict data: The response data as provided by self.__request
+        :return bool:
+        """
         return data.get("payload", {}).get("links", {}).get("next", "") != ""
 
     @staticmethod
     def _get_next_link(data):
+        """
+        Returns the link for the next page
+        :param dict data: The response data as provided by self.__request
+        :return bool:
+        """
         return data.get("payload", {}).get("links", {}).get("next", None)
 
     def _get_response_version(self, data):
+        """
+        Returns the MDS version number as provided in the response body
+        :param dict data: The response data as provided by self.__request
+        :return str: The version number as provided by the mds endpoint response
+        """
         return data.get("payload", {}).get("version", self.version)
 
     def get_trips(
         self,
-        providers=None,
-        device_id=None,
-        vehicle_id=None,
-        start_time=None,
-        end_time=None,
-        bbox=None,
-        paging=True,
+        start_time,
+        end_time,
         **kwargs,
     ):
+        """
+        Returns a JSON dictionary with a list of all
+        :param int start_time:
+        :param int end_time:
+        :param str vehicle_id: (Optional) The vehicle ID
+        :param str bbox: (Optional) The bounding box to be used
+        :return dict:
+        """
         logging.debug(
-            "MDSClient020::get_trips() Getting trips: %s %s " % (start_time, end_time)
+            "MDSClient020::get_trips() Getting trips: %s %s "
+            % (start_time, end_time)
         )
 
         # Set the required URI parameters
-        self.params[self.param_schema["start_time"]] = start_time
-        self.params[self.param_schema["end_time"]] = end_time
+        for key, value in kwargs.items():
+            self.params[self.param_schema[key]] = value
 
         # Out trips accumulator
         trips_accumulator = []
+        # Contains our MDS endpoint with /trips path
         current_endpoint = f"{self.mds_endpoint}/trips"
-        has_trips = False
+        # A flag whose value is True if there is more data to download
         has_next_link = False
-        has_data = False
 
         while True:
-            # Check max attempts
+            # Make the HTTP Request
             data = self._request(
                 mds_endpoint=current_endpoint,
                 headers=self.headers,
                 params=None if has_next_link else self.params,
             )
 
-            has_trips = self._has_trips(data)
-            has_data = self._has_data(data)
+            # Change the value of next link flag
             has_next_link = self._has_next_link(data)
 
-            logging.debug(
-                "MDSClient020::get_trips() has_trips: %s, has_data: %s, has_next_link: %s "
-                % (has_trips, has_data, has_next_link)
-            )
-
-            if has_trips:
+            # If the data has trips, process them.
+            if self._has_trips(data):
+                # Gather the trips from `data`
                 trips = data["payload"]["data"]["trips"]
-                current_trips_count = len(trips_accumulator)
-                new_trips_count = len(trips)
-
-                logging.debug("\n\n------------------------------\n\n")
-                logging.debug(trips_accumulator)
-                logging.debug("\n\n------------------------------\n\n")
-                logging.debug(trips)
-                logging.debug("\n\n------------------------------\n\n")
-
-
-                logging.debug(
-                    "MDSClient020::get_trips() current_trips_count: %s, new_trips_count: %s"
-                    % (current_trips_count, new_trips_count)
-                )
-                trips_accumulator.append(trips)
+                # Append the trips to the current list
+                trips_accumulator += trips
+                # Wipe out the current trips variable and start over
                 trips = None
-                logging.debug(
-                    "MDSClient020::get_trips() len(trips_accumulator): %s"
-                    % (len(trips_accumulator))
-                )
 
+            # Quit execution if not paging
+            if not self.paging:
+                break
+
+            # The `next` link becomes our new endpoint
             current_endpoint = self._get_next_link(data)
 
+            # If the endpoint is not valid, then quit loop
             if not current_endpoint:
                 break
             else:
