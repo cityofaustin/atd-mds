@@ -4,6 +4,7 @@ from .MDSClientBase import MDSClientBase
 
 # Debug & Logging
 import logging
+import time
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -23,6 +24,7 @@ class MDSClient020(MDSClientBase):
         "bbox": "bbox",
         "device_id": "device_id",
         "vehicle_id": "vehicle_id",
+        "paging": "paging",
     }
 
     def __init__(self, config):
@@ -83,7 +85,8 @@ class MDSClient020(MDSClientBase):
         :param int start_time:
         :param int end_time:
         :param str vehicle_id: (Optional) The vehicle ID
-        :param str bbox: (Optional) The bounding box to be used
+        :param str bbox: (Optional) Specify a bounding box (e.g., bbox="-122.4183,37.7758,-122.4120,37.7858")
+        :param bool paging: (Optional) An override to paging. Set to True to enable it.
         :return dict:
         """
         logging.debug(
@@ -101,8 +104,15 @@ class MDSClient020(MDSClientBase):
         current_endpoint = f"{self.mds_endpoint}/trips"
         # A flag whose value is True if there is more data to download
         has_next_link = False
+        # A variable to count the number of attempts per _request call
+        current_attempts = 0
 
         while True:
+            # If a delay is specified in the config
+            # make sure every delay is respected
+            if self.delay:
+                time.sleep(self.delay)
+
             # Make the HTTP Request
             data = self._request(
                 mds_endpoint=current_endpoint,
