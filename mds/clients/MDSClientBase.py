@@ -14,8 +14,9 @@ class MDSClientBase:
         "param_schema",
         "mds_endpoint",
         "paging",
-        "interval",
-        "timeout"
+        "delay",
+        "timeout",
+        "max_attempts"
     )
 
     def __init__(self, config):
@@ -24,13 +25,18 @@ class MDSClientBase:
         self.params = {}
         self.mds_endpoint = self.config.get("mds_api_url", None)
         self.paging = self.config.get("paging", False)
-        self.interval = self.config.get("interval", 1)
-        self.timeout = self.config.get("interval", 90)
+        self.delay = self.config.get("delay", 1)
+        self.timeout = self.config.get("interval", 10)
+        self.max_attempts = self.config.get("max_attempts", 3)
 
-    def __paginate(self, **kwargs):
+    def _paginate(self, **kwargs):
         pass
 
-    def __request(self, **kwargs):
+
+    def _append_data(self, data, response):
+        pass
+
+    def _request(self, **kwargs):
         logging.debug(f"MDSClientBase::__request() Making request...")
         data = {}
         mds_endpoint = kwargs.get("mds_endpoint", {})
@@ -54,7 +60,7 @@ class MDSClientBase:
                 # "response_headers": response.headers,
                 "type": "success",
                 "message": "success",
-                "data": response.json()
+                "payload": response.json()
             }
         elif response.status_code == 404:
             data = {
@@ -62,7 +68,7 @@ class MDSClientBase:
                 # "response_headers": response.headers,
                 "type": "error",
                 "message": "not found",
-                "data": {}
+                "payload": {}
             }
         else:
             data = {
@@ -70,7 +76,7 @@ class MDSClientBase:
                 # "response_headers": response.headers,
                 "type": "error",
                 "message": "unknown error",
-                "data": {}
+                "payload": {}
             }
 
         return data
@@ -94,24 +100,15 @@ class MDSClientBase:
     def get_headers(self):
         logging.debug("MDSClientBase::get_headers() returning headers")
         return self.headers
-
-    def get_trips(self, start_time, end_time):
-
-        logging.debug("MDSClientBase::get_trips() Getting trips: %s %s " % (start_time, end_time))
-        self.params[self.param_schema["start_time"]] = start_time
-        self.params[self.param_schema["end_time"]] = end_time
-
-        return self.__request(
-            mds_endpoint=f"{self.mds_endpoint}/trips",
-            params=self.params,
-            headers=self.headers
-        )
     
     def set_paging(self, paging):
         self.paging = paging
 
-    def set_interval(self, interval):
-        self.interval = interval
+    def set_delay(self, delay):
+        self.delay = delay
 
     def set_timeout(self, timeout):
         self.timeout = timeout
+
+    def set_max_attempts(self, max_attempts):
+        self.max_attempts = max_attempts
