@@ -1,4 +1,5 @@
 import requests
+from requests.exceptions import Timeout
 
 # Debug & Logging
 import logging
@@ -26,7 +27,7 @@ class MDSClientBase:
         self.mds_endpoint = self.config.get("mds_api_url", None)
         self.paging = self.config.get("paging", False)
         self.delay = self.config.get("delay", 0)
-        self.timeout = self.config.get("interval", 10)
+        self.timeout = self.config.get("interval", None)
         self.max_attempts = self.config.get("max_attempts", 3)
 
     def _request(self, mds_endpoint, **kwargs):
@@ -51,12 +52,18 @@ class MDSClientBase:
         logging.debug(f"MDSClientBase::__request() mds_headers: {mds_headers}")
 
         # Make the actual request
-        response = requests.get(
-            mds_endpoint,
-            params=mds_params,
-            headers=mds_headers,
-            timeout=self.timeout,
-        )
+        try:
+            response = requests.get(
+                mds_endpoint,
+                params=mds_params,
+                headers=mds_headers,
+                timeout=self.timeout,
+            )
+        except Timeout:
+            response = {
+                "status_code": -1,
+                "content": f"Timeout Error: The request exceeded {self.timeout} seconds."
+            }
 
         # If the request is successful:
         if response.status_code == 200:
