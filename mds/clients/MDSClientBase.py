@@ -29,16 +29,18 @@ class MDSClientBase:
         self.timeout = self.config.get("interval", 10)
         self.max_attempts = self.config.get("max_attempts", 3)
 
-    def _paginate(self, **kwargs):
-        pass
-
-
-    def _append_data(self, data, response):
-        pass
-
-    def _request(self, **kwargs):
+    def _request(self, mds_endpoint, **kwargs):
+        """
+        Makes an HTTP request
+        :param str mds_endpoint: The URL endpoint to make the request to
+        :param dict params: (Optional) URI Parameters to add to the request
+        :param dict headers: (Optional) A dictionary of HTTP headers to pass to the request
+        :return dict:
+        """
         logging.debug(f"MDSClientBase::__request() Making request...")
         data = {}
+
+        # Load our endpoint, parameters and headers
         mds_endpoint = kwargs.get("mds_endpoint", {})
         mds_params = kwargs.get("params", {})
         mds_headers = kwargs.get("headers", {})
@@ -48,12 +50,15 @@ class MDSClientBase:
         logging.debug(f"MDSClientBase::__request() mds_params: {mds_params}")
         logging.debug(f"MDSClientBase::__request() mds_headers: {mds_headers}")
 
+        # Make the actual request
         response = requests.get(
             mds_endpoint,
             params=mds_params,
-            headers=mds_headers
+            headers=mds_headers,
+            timeout=self.timeout,
         )
 
+        # If the request is successful:
         if response.status_code == 200:
             data = {
                 "status_code": response.status_code,
@@ -61,28 +66,35 @@ class MDSClientBase:
                 "message": "success",
                 "payload": response.json()
             }
-        elif response.status_code == 404:
+        # If we have anything else:
+        elif response.status_code != 200:
+            """
+            In the future, we may want to refactor this
+            to handle 301 and 302 redirect responses.
+            """
             data = {
                 "status_code": response.status_code,
                 "response": "error",
-                "message": "not found",
-                "payload": {}
-            }
-        else:
-            data = {
-                "status_code": response.status_code,
-                "response": "error",
-                "message": "unknown error",
+                "message": f"Error: {response.content}",
                 "payload": {}
             }
 
         return data
 
     def set_header(self, key, value):
+        """
+        Adds an HTTP header to the list
+        :param str key: The name of the header
+        :param str value: The value of the HTTP header
+        """
         logging.debug(f"MDSClientBase::set_header() Set header k: '{key}', v: '{value}'")
         self.headers[key] = value
 
-    def render_settings(self, headers):
+    def render_settings(self, headers={}):
+        """
+        Compiles the headers and the parameters
+        :param dict headers: (Optional) Adds any additional headers to the list (e.g., authentication headers)
+        """
         # 1. Consolidate current headers and new headers
         logging.debug("MDSClientBase::render_settings() Rendering headers")
         self.headers = {**self.headers, **headers}
@@ -95,17 +107,36 @@ class MDSClientBase:
                 self.param_schema[key] = value
 
     def get_headers(self):
-        logging.debug("MDSClientBase::get_headers() returning headers")
+        """
+        Returns the current list of headers
+        :return dict:
+        """
         return self.headers
     
     def set_paging(self, paging):
+        """
+        Allows to override the paging configuration
+        :param bool paging: The new paging configuration. True to enable paging.
+        """
         self.paging = paging
 
     def set_delay(self, delay):
+        """
+        Allows to override the paging configuration
+        :param int delay: The new delay setting in seconds.
+        """
         self.delay = delay
 
     def set_timeout(self, timeout):
+        """
+        Allows to override the paging configuration
+        :param int timeout: The new timeout in seconds.
+        """
         self.timeout = timeout
 
     def set_max_attempts(self, max_attempts):
+        """
+        Allows to override the max_attempts configuration
+        :param int max_attempts: The new max_attempts setting.
+        """
         self.max_attempts = max_attempts
