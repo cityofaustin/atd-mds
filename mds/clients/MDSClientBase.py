@@ -25,7 +25,7 @@ class MDSClientBase:
         self.params = {}
         self.mds_endpoint = self.config.get("mds_api_url", None)
         self.paging = self.config.get("paging", False)
-        self.delay = self.config.get("delay", 1)
+        self.delay = self.config.get("delay", 0)
         self.timeout = self.config.get("interval", 10)
         self.max_attempts = self.config.get("max_attempts", 3)
 
@@ -57,24 +57,21 @@ class MDSClientBase:
         if response.status_code == 200:
             data = {
                 "status_code": response.status_code,
-                # "response_headers": response.headers,
-                "type": "success",
+                "response": "success",
                 "message": "success",
                 "payload": response.json()
             }
         elif response.status_code == 404:
             data = {
                 "status_code": response.status_code,
-                # "response_headers": response.headers,
-                "type": "error",
+                "response": "error",
                 "message": "not found",
                 "payload": {}
             }
         else:
             data = {
                 "status_code": response.status_code,
-                # "response_headers": response.headers,
-                "type": "error",
+                "response": "error",
                 "message": "unknown error",
                 "payload": {}
             }
