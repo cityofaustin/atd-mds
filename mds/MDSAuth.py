@@ -4,11 +4,9 @@
 
 import base64
 import requests
-
+import pdb
 # Debug & Logging
 import logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-
 
 class MDSAuth:
     __slots__ = (
@@ -48,7 +46,38 @@ class MDSAuth:
 
     def mds_oauth(self):
         logging.debug("MDSAuth::mds_oauth() Running OAuth authentication")
-        pass
+        auth_data = self.config.get("auth_data", {})
+        token_url = self.config.get("token_url", None)
+
+        payload = {
+            "client_id": auth_data.get("client_id", None),
+            "client_secret": auth_data.get("client_secret", None),
+            "grant_type": auth_data.get("grant_type", None),
+            "scope": auth_data.get("scope", None)
+        }
+
+        logging.debug("MDSAuth::mds_oauth() Making OAuth HTTP Request...")
+        if token_url:
+            response = requests.post(
+                token_url,
+                data=payload
+            )
+        else:
+            raise Exception("MDSAuth::mds_oauth() No token_url defined in the settings.")
+
+        token = response.json().get("access_token", None)
+
+        if token:
+            logging.debug(
+                "MDSAuth::mds_oauth() Received token: %s[...]" % (token[:6])
+            )
+            self.headers = {
+                "Authorization": f'Bearer {token}'
+            }
+
+            return self.headers
+        else:
+            raise Exception("MDSAuth::mds_oauth() Token could not be resolved.")
 
     def mds_auth_token(self):
         logging.debug("MDSAuth::mds_auth_token() Running Token authentication")
