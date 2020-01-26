@@ -1,3 +1,4 @@
+import time
 import requests
 from requests.exceptions import Timeout
 
@@ -72,19 +73,41 @@ class MDSClientBase:
         mds_params = kwargs.get("params", {})
         mds_headers = kwargs.get("headers", {})
 
+        # Manage our current attempt to make an HTTP request
+        current_attempts = 0
+
+        # Log our current values
         logging.debug(f"MDSClientBase::__request() Details:")
         logging.debug(f"MDSClientBase::__request() mds_endpoint: {mds_endpoint}")
         logging.debug(f"MDSClientBase::__request() mds_params: {mds_params}")
-        logging.debug(f"MDSClientBase::__request() mds_headers: {mds_headers}")
+        logging.debug(f"MDSClientBase::__request() mds_headers: {mds_headers}\n")
 
-        # Make the actual request
-        try:
-            response = requests.get(
-                mds_endpoint,
-                params=mds_params,
-                headers=mds_headers,
-                timeout=self.timeout,
-            )
+        # We are going to try N times as specified in self.max_attempts
+        while True:
+            # Increase current attempt
+            current_attempts += 1
+
+            # Wait N seconds as specified in `self.delay`
+            time.sleep(self.delay)
+
+            # Let's try to make an HTTP request
+            try:
+                logging.debug(
+                    "MDSClientBase::__request() Attempting request: %s/%s -- Timeout %s, Paging: %s, Delay: %s"
+                    % (
+                        current_attempts, self.max_attempts, self.timeout, self.paging, self.delay
+                    )
+                )
+                # Make actual request
+                response = requests.get(
+                    mds_endpoint,
+                    params=mds_params,
+                    headers=mds_headers,
+                    timeout=self.timeout,
+                )
+                # Build a data json response
+                data = self._build_response(response)
+
         except Timeout:
             response = {
                 "status_code": -1,
