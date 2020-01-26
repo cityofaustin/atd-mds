@@ -28,7 +28,7 @@ class MDSClientBase:
         self.headers = {}
         self.params = {}
         self.mds_endpoint = self.config.get("mds_api_url", None)
-        self.paging = self.config.get("paging", False)
+        self.paging = self.config.get("paging", True)
         self.delay = self.config.get("delay", 0)
         self.timeout = self.config.get("interval", None)
         self.max_attempts = self.config.get("max_attempts", 3)
