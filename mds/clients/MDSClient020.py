@@ -1,10 +1,7 @@
-import json
-
 from .MDSClientBase import MDSClientBase
 
 # Debug & Logging
 import logging
-import time
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
