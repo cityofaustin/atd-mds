@@ -141,17 +141,18 @@ class MDSClient020(MDSClientBase):
                 logging.debug("MDSClient020::get_trips() Paging set to False, stopping request...")
                 break
 
-            # The `next` link becomes our new endpoint
+            # 5. The `next` link becomes our new endpoint
             current_endpoint = self._get_next_link(data)
 
-            # If the endpoint is not valid, then quit loop
-            if not current_endpoint:
-                break
-            else:
+            # 6. If the endpoint is None, then quit loop
+            if current_endpoint:
                 logging.debug(
                     "MDSClient020::get_trips() Next link: %s" % current_endpoint
                 )
+            else:
+                break
 
+        # Return trips in this envelope:
         return {
             "version": self._get_response_version(data),
             "data": {
