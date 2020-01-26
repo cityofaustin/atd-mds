@@ -124,10 +124,10 @@ class MDSClient020(MDSClientBase):
                 params=None if has_next_link else self.params,
             )
 
-            # Change the value of next link flag
+            # 2. Check if we have a next link
             has_next_link = self._has_next_link(data)
 
-            # If the data has trips, process them.
+            # 3. If the data has trips, process them.
             if self._has_trips(data):
                 # Gather the trips from `data`
                 trips = data["payload"]["data"]["trips"]
@@ -136,8 +136,9 @@ class MDSClient020(MDSClientBase):
                 # Wipe out the current trips variable and start over
                 trips = None
 
-            # Quit execution if not paging
-            if not self.paging:
+            # 4. Quit loop if not paging
+            if self.paging is False:
+                logging.debug("MDSClient020::get_trips() Paging set to False, stopping request...")
                 break
 
             # The `next` link becomes our new endpoint
