@@ -24,7 +24,6 @@ class MDSClient020(MDSClientBase):
         "bbox": "bbox",
         "device_id": "device_id",
         "vehicle_id": "vehicle_id",
-        "paging": "paging",
     }
 
     def __init__(self, config):
