@@ -54,7 +54,7 @@ class MDSClient020(MDSClientBase):
         :param dict data: The response data as provided by self.__request
         :return bool:
         """
-        return data.get("payload", {}).get("links", {}).get("next", "") != ""
+        return True if data.get("payload", {}).get("links", {}).get("next", None) else False
 
     @staticmethod
     def _get_next_link(data):
