@@ -3,7 +3,10 @@ from requests.exceptions import Timeout
 
 # Debug & Logging
 import logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 class MDSClientBase:
@@ -17,7 +20,7 @@ class MDSClientBase:
         "paging",
         "delay",
         "timeout",
-        "max_attempts"
+        "max_attempts",
     )
 
     def __init__(self, config):
@@ -62,7 +65,7 @@ class MDSClientBase:
         except Timeout:
             response = {
                 "status_code": -1,
-                "content": f"Timeout Error: The request exceeded {self.timeout} seconds."
+                "content": f"Timeout Error: The request exceeded {self.timeout} seconds.",
             }
 
         # If the request is successful:
@@ -71,7 +74,7 @@ class MDSClientBase:
                 "status_code": response.status_code,
                 "response": "success",
                 "message": "success",
-                "payload": response.json()
+                "payload": response.json(),
             }
         # If we have anything else:
         elif response.status_code != 200:
@@ -83,7 +86,7 @@ class MDSClientBase:
                 "status_code": response.status_code,
                 "response": "error",
                 "message": f"Error: {response.content}",
-                "payload": {}
+                "payload": {},
             }
 
         return data
@@ -94,7 +97,9 @@ class MDSClientBase:
         :param str key: The name of the header
         :param str value: The value of the HTTP header
         """
-        logging.debug(f"MDSClientBase::set_header() Set header k: '{key}', v: '{value}'")
+        logging.debug(
+            f"MDSClientBase::set_header() Set header k: '{key}', v: '{value}'"
+        )
         self.headers[key] = value
 
     def render_settings(self, headers={}):
@@ -119,7 +124,7 @@ class MDSClientBase:
         :return dict:
         """
         return self.headers
-    
+
     def set_paging(self, paging):
         """
         Allows to override the paging configuration
