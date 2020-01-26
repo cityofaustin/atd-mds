@@ -81,8 +81,8 @@ class MDSClient020(MDSClientBase):
     ):
         """
         Returns a JSON dictionary with a list of all
-        :param int start_time:
-        :param int end_time:
+        :param int start_time: The start time in unix format
+        :param int end_time: The end time in unix format
         :param str vehicle_id: (Optional) The vehicle ID
         :param str bbox: (Optional) Specify a bounding box (e.g., bbox="-122.4183,37.7758,-122.4120,37.7858")
         :param bool paging: (Optional) An override to paging. Set to True to enable it.
@@ -93,8 +93,16 @@ class MDSClient020(MDSClientBase):
             % (start_time, end_time)
         )
 
+        params = {
+            **{
+                "start_time": start_time,
+                "end_time": end_time
+            },
+            **kwargs
+        }
+
         # Set the required URI parameters
-        for key, value in kwargs.items():
+        for key, value in params.items():
             self.params[self.param_schema[key]] = value
 
         # Out trips accumulator
