@@ -66,11 +66,9 @@ class MDSClientBase:
         :param dict headers: (Optional) A dictionary of HTTP headers to pass to the request
         :return dict:
         """
-        logging.debug(f"MDSClientBase::__request() Making request...")
-        data = {}
+        logging.debug(f"\nMDSClientBase::__request() Making request...")
 
         # Load our endpoint, parameters and headers
-        mds_endpoint = kwargs.get("mds_endpoint", {})
         mds_params = kwargs.get("params", {})
         mds_headers = kwargs.get("headers", {})
 
