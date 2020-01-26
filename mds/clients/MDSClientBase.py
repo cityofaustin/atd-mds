@@ -120,26 +120,29 @@ class MDSClientBase:
                     "payload": {},
                 }
 
-        # If the request is successful:
-        if response.status_code == 200:
-            data = {
-                "status_code": response.status_code,
-                "response": "success",
-                "message": "success",
-                "payload": response.json(),
-            }
-        # If we have anything else:
-        elif response.status_code != 200:
-            """
-            In the future, we may want to refactor this
-            to handle 301 and 302 redirect responses.
-            """
-            data = {
-                "status_code": response.status_code,
-                "response": "error",
-                "message": f"Error: {response.content}",
-                "payload": {},
-            }
+            success = data.get("response", "error") == "success"
+            logging.debug(
+                "MDSClientBase::__request() Reported status: %s" % success
+            )
+
+            # Check if we have an error
+            if success:
+                break
+            else:
+                # First, log the response error
+                logging.debug(
+                    "MDSClientBase::__request() Unable to make request: %s"
+                    % (data.get("message", "No error message provided"))
+                )
+                # Check if we still have attempts left
+                if current_attempts < self.max_attempts:
+                    continue  # Try again in next iteration
+                else:
+                    # We need to stop the execution, it seems we have a problem
+                    raise Exception(
+                        "Max attempts reached (%s): could not fetch MDS data at endpoint '%s'"
+                        % (self.max_attempts, mds_endpoint)
+                    )
 
         return data
 
