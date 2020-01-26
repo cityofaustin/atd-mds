@@ -114,31 +114,15 @@ class MDSClient020(MDSClientBase):
         # A variable to count the number of attempts per _request call
         current_attempts = 0
 
+        # Start an endless loop
         while True:
-            # If a delay is specified in the config
-            # make sure every delay is respected
-            if self.delay:
-                time.sleep(self.delay)
 
-            # Make the HTTP Request
+            # 1. Make the HTTP Request
             data = self._request(
                 mds_endpoint=current_endpoint,
                 headers=self.headers,
                 params=None if has_next_link else self.params,
             )
-
-            # Check if we have an error, assume error
-            if data.get("response", "error") == "error":
-                # Check if we still have attempts left
-                if current_attempts < self.max_attempts:
-                    current_attempts += 1   # Increase current attempt
-                    continue    # Try again in next iteration
-                else:
-                    # We need to stop the execution, it seems we have a problem
-                    raise Exception(
-                        "Max attempts reached (%s): could not fetch MDS data at endpoint '%s'"
-                        % (self.max_attempts, current_endpoint)
-                    )
 
             # Change the value of next link flag
             has_next_link = self._has_next_link(data)
