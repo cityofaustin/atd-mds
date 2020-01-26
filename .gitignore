@@ -131,11 +131,12 @@ dmypy.json
 # Env files
 *.env
 
-# IDEs
+# IDEs & OS
 .idea/
 .vscode/
 old/
 misc/
+.DS_Store
 
-# Protected Files
+# Protected Files & Other
 secrets.py
