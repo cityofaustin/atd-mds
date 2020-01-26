@@ -108,11 +108,17 @@ class MDSClientBase:
                 # Build a data json response
                 data = self._build_response(response)
 
-        except Timeout:
-            response = {
-                "status_code": -1,
-                "content": f"Timeout Error: The request exceeded {self.timeout} seconds.",
-            }
+            # There was an exception, timeout or otherwise:
+            except Exception as e:
+                logging.debug(
+                    "MDSClientBase::__request() Exception detected: %s" % (str(e))
+                )
+                data = {
+                    "status_code": -1,
+                    "response": "error",
+                    "message": f"Error: {str(e)}",
+                    "payload": {},
+                }
 
         # If the request is successful:
         if response.status_code == 200:
