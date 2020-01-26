@@ -33,6 +33,31 @@ class MDSClientBase:
         self.timeout = self.config.get("interval", None)
         self.max_attempts = self.config.get("max_attempts", 3)
 
+    @staticmethod
+    def _build_response(response):
+        """
+        Builds a data payload to be given back to the client
+        :param object response: As provided by requests.get
+        :return dict: A parsed response data
+        """
+
+        # In the future, we may want to refactor this
+        # to handle 301 and 302 redirect responses.
+        status_code = response.status_code if hasattr(response, "status_code") else -1
+        success = status_code == 200
+        message = response.content if hasattr(response, "content") else "No response message provided."
+
+        logging.debug(
+            f"MDSClientBase::_build_response() status_code: {status_code}"
+        )
+
+        return {
+            "status_code": status_code,
+            "response": "success" if success else "error",
+            "message": "success" if success else f"Error: {message}",
+            "payload": response.json() if success else {},
+        }
+
     def _request(self, mds_endpoint, **kwargs):
         """
         Makes an HTTP request
