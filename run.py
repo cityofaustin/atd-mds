@@ -77,7 +77,7 @@ def run(provider_name, time_format):
 
     else:
         logging.debug("-------------------------------------------------")
-        logging.debug(f"Error, Could not find provider: {provider_name}")
+        logging.debug("Error, Could not find provider: %s" % provider_name)
         logging.debug("-------------------------------------------------")
 
     # Calculate & print overall time
