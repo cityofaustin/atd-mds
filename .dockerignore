@@ -1,0 +1,16 @@
+# Folders
+.git
+.cache
+__pycache__
+mds
+venv
+.vscode/
+.idea/
+
+
+# Files
+secrets.py
+.DS_Store
+*.md
+*.log
+Dockerfile
