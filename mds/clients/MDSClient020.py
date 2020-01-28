@@ -92,8 +92,8 @@ class MDSClient020(MDSClientBase):
 
         params = {
             **{
-                "start_time": start_time,
-                "end_time": end_time
+                "start_time": int(start_time),
+                "end_time": int(end_time)
             },
             **kwargs
         }
@@ -108,8 +108,6 @@ class MDSClient020(MDSClientBase):
         current_endpoint = f"{self.mds_endpoint}/trips"
         # A flag whose value is True if there is more data to download
         has_next_link = False
-        # A variable to count the number of attempts per _request call
-        current_attempts = 0
 
         # Start an endless loop
         while True:
