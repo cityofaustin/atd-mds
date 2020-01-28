@@ -1,4 +1,5 @@
 from .MDSClientBase import MDSClientBase
+import json
 
 # Debug & Logging
 import logging
@@ -19,8 +20,8 @@ class MDSClient030(MDSClientBase):
     # Parameters based on this documentation:
     # https://github.com/openmobilityfoundation/mobility-data-specification/tree/0.3.x/provider#trips-query-parameters
     param_schema = {
-        "start_time": "min_end_time",
-        "end_time": "max_end_time",
+        "start_time": "max_end_time",
+        "end_time": "min_end_time",
         "bbox": "bbox",
         "device_id": "device_id",
         "vehicle_id": "vehicle_id",
@@ -89,14 +90,14 @@ class MDSClient030(MDSClientBase):
         :return dict:
         """
         logging.debug(
-            "MDSClient020::get_trips() Getting trips: %s %s "
+            "MDSClient030::get_trips() Getting trips: %s %s "
             % (start_time, end_time)
         )
 
         params = {
             **{
-                "start_time": start_time,
-                "end_time": end_time
+                "start_time": int(round(start_time * 1000)),
+                "end_time": int(round(end_time * 1000))
             },
             **kwargs
         }
@@ -111,8 +112,6 @@ class MDSClient030(MDSClientBase):
         current_endpoint = f"{self.mds_endpoint}/trips"
         # A flag whose value is True if there is more data to download
         has_next_link = False
-        # A variable to count the number of attempts per _request call
-        current_attempts = 0
 
         # Start an endless loop
         while True:
@@ -138,7 +137,7 @@ class MDSClient030(MDSClientBase):
 
             # 4. Quit loop if not paging
             if self.paging is False:
-                logging.debug("MDSClient020::get_trips() Paging set to False, stopping request...")
+                logging.debug("MDSClient030::get_trips() Paging set to False, stopping request...")
                 break
 
             # 5. The `next` link becomes our new endpoint
@@ -147,7 +146,7 @@ class MDSClient030(MDSClientBase):
             # 6. If the endpoint is None, then quit loop
             if current_endpoint:
                 logging.debug(
-                    "MDSClient020::get_trips() Next link: %s" % current_endpoint
+                    "MDSClient030::get_trips() Next link: %s" % current_endpoint
                 )
             else:
                 break
