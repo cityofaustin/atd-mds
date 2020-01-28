@@ -1,5 +1,4 @@
 from .MDSClientBase import MDSClientBase
-import json
 
 # Debug & Logging
 import logging
@@ -20,8 +19,8 @@ class MDSClient030(MDSClientBase):
     # Parameters based on this documentation:
     # https://github.com/openmobilityfoundation/mobility-data-specification/tree/0.3.x/provider#trips-query-parameters
     param_schema = {
-        "start_time": "max_end_time",
-        "end_time": "min_end_time",
+        "start_time": "min_end_time",
+        "end_time": "max_end_time",
         "bbox": "bbox",
         "device_id": "device_id",
         "vehicle_id": "vehicle_id",
