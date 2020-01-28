@@ -21,12 +21,12 @@ class MDSTimeZone:
         if time_zone is not None:
             self.time_zone = pytz.timezone(time_zone)
 
-        self.time_start = self.get_time_b(
+        self.time_start = self.get_time(
             offset=offset,
             date_time_now=date_time_now
         )
 
-        self.time_end = self.get_time_b(
+        self.time_end = self.get_time(
             date_time_now=date_time_now
         )
 
@@ -34,7 +34,7 @@ class MDSTimeZone:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def get_time_b(self, offset=0, date_time_now=datetime.now()):
+    def get_time(self, offset=0, date_time_now=datetime.now()):
         """
         Builds a time object
         :param int offset:The offset to be applied in seconds
@@ -70,7 +70,7 @@ class MDSTimeZone:
         # Use current timezone or UTC if indicated
         tz_aware_output = tz_aware_time_start.astimezone(pytz.UTC) if utc else tz_aware_time_start
         # Use current format, or Unix Epoch if indicated
-        return int(tz_aware_output.timestamp()) if unix else tz_aware_output
+        return tz_aware_output.timestamp() if unix else tz_aware_output
 
     def get_time_end(self, utc=False, unix=False):
         """
@@ -84,4 +84,4 @@ class MDSTimeZone:
         # Use current timezone or UTC if indicated
         tz_aware_output = tz_aware_time_end.astimezone(pytz.UTC) if utc else tz_aware_time_end
         # Use current format, or Unix Epoch if indicated
-        return int(tz_aware_output.timestamp()) if unix else tz_aware_output
+        return tz_aware_output.timestamp() if unix else tz_aware_output
