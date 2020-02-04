@@ -18,13 +18,13 @@ logger.disabled = False
 
 @click.command()
 @click.option(
-    "--provider_name",
+    "--provider-name",
     prompt="Provider Name",
     default="None",
     help="The name of the provider (e.g., Uber, Lyft, Lime, ...)",
 )
 @click.option(
-    "--time_format", default="unix", help="The format to use (e.g., unix or iso)"
+    "--time-format", default="unix", help="The format to use (e.g., unix or iso)"
 )
 def run(provider_name, time_format):
     """
