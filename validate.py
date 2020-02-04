@@ -13,6 +13,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 logger = logging.getLogger()
 logger.disabled = False
 
+
 @click.command()
 @click.option(
     "--provider",
@@ -113,7 +114,6 @@ def run(**kwargs):
         time_zone="US/Central",  # US/Central
     )
 
-
     # Output generated time stamps on screen
     logging.debug("Time Start (iso):\t%s" % tz_time.get_time_start())
     logging.debug("Time End   (iso):\t%s" % tz_time.get_time_end())
@@ -123,13 +123,25 @@ def run(**kwargs):
     #
     # For every trip, we are going to validate the time
     #
+    test_counts = {
+        "passed": 0,
+        "failed": 0,
+        "total": 0,
+    }
     for trip in json_data["data"]["trips"]:
-        validate_record(
+        valid = validate_record(
             min_time_unix=int(tz_time.get_time_start(utc=True, unix=True)),
             max_time_unix=int(tz_time.get_time_end(utc=True, unix=True)),
             trip=trip
         )
+        # Based on result, update count...
+        if valid:
+            test_counts["passed"] += 1
+        else:
+            test_counts["failed"] += 1
+        test_counts["total"] += 1
 
+    # Print time elapsed output
     end = time.time()
     hours, rem = divmod(end - start, 3600)
     minutes, seconds = divmod(rem, 60)
@@ -138,6 +150,7 @@ def run(**kwargs):
             int(hours), int(minutes), seconds
         )
     )
+    print("Element")
 
 
 def validate_record(min_time_unix, max_time_unix, trip):
@@ -155,12 +168,13 @@ def validate_record(min_time_unix, max_time_unix, trip):
             print(trip)
             exit(1)
         else:
-            passes = ("❌", "👍")[min_time_unix < end_time and end_time < max_time_unix]
-            print(f"Trip: {trip_id} {passes}")
+            passes = (False, True)[min_time_unix < end_time and end_time < max_time_unix]
+            print(f"Trip: {trip_id} {('❌', '👍')[passes]}")
             print(f"\tmin_time_unix:\t{min_time_unix} ({min_parsed})")
             print(f"\tend_time:\t{end_time} ({et_parsed})")
             # print(f"\tstart_time:\t{start_time} ({st_parsed})")
             print(f"\tmax_time_unix:\t{max_time_unix} ({max_parsed})")
+            return passes
 
     except Exception as e:
         print(f"Exception: {str(e)}")
