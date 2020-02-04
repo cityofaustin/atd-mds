@@ -1,6 +1,7 @@
 atd-mds-client==0.0.3
 certifi==2019.11.28
 chardet==3.0.4
+Click==7.0
 idna==2.8
 pytz==2019.3
 requests==2.22.0
