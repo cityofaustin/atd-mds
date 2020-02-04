@@ -139,6 +139,7 @@ def run(**kwargs):
             test_counts["passed"] += 1
         else:
             test_counts["failed"] += 1
+        # We increase the total count...
         test_counts["total"] += 1
 
     # Print time elapsed output
@@ -150,7 +151,11 @@ def run(**kwargs):
             int(hours), int(minutes), seconds
         )
     )
-    print("Element")
+
+    print("\n\n------------------------------------------------------------")
+    print("Totals:")
+    print(test_counts)
+    print("------------------------------------------------------------\n\n")
 
 
 def validate_record(min_time_unix, max_time_unix, trip):
