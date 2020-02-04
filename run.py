@@ -2,11 +2,8 @@
 
 import time
 import click
-import json
-from datetime import datetime
-
 from mds import *
-
+from helpers import *
 from secrets import PROVIDERS
 
 # Debug & Logging
@@ -18,45 +15,103 @@ logger.disabled = False
 
 @click.command()
 @click.option(
-    "--provider-name",
-    prompt="Provider Name",
-    default="None",
-    help="The name of the provider (e.g., Uber, Lyft, Lime, ...)",
+    "--provider",
+    default=None,
+    prompt="Provider",
+    help="The provider's name",
 )
 @click.option(
-    "--time-format", default="unix", help="The format to use (e.g., unix or iso)"
+    "--file",
+    default=None,
+    prompt="Output File",
+    help="The json file you would like to validate",
 )
-def run(provider_name, time_format):
+@click.option(
+    "--interval",
+    default=None,
+    prompt="Interval in hours",
+    help="Relative to the maximum time for trip end, an interval window "
+         "in hours (i.e., from 11 to noon, you would need the value of '1')"
+)
+@click.option(
+    "--time-max",
+    default=None,
+    prompt="Max. End Trip Datetime",
+    help="The maximum time where the trip ended in format: 'yyyy-mm-dd-hh'"
+)
+def run(**kwargs):
     """
-    Runs the main program
-    :param str provider_name: The name of the provider
-    :param str time_format: The time format (unix or iso)
+    Runs the program based on the above flags, the values will be passed to kwargs as a dictionary
+    :param dict kwargs: The values specified by click decorators.
     :return:
     """
+    provider_name = kwargs.get('provider', None)
+    file = kwargs.get('file', None)
+    interval = kwargs.get('interval', None)
+    time_max = kwargs.get('time_max', None)
+
+    print(f"""
+        Provider: '{provider_name}'
+        Parsing: '{file}'
+        Interval: '{interval}'
+        Time Max: '{time_max}'
+    """)
+
+    if not provider_name:
+        print(f"Provider is not defined.")
+        exit(1)
+
+    if not file:
+        print(f"File {file} is not defined.")
+        exit(1)
+
+    if not interval:
+        print(f"Interval not defined")
+        exit(1)
+
+    if not time_max:
+        print(f"Max time not defined")
+        exit(1)
+
+    # Load the provider configuration
+    mds_client_configuration = PROVIDERS.get(provider_name, None)
+    if not mds_client_configuration:
+        print(f"The provider configuration could not be loaded for: '{provider_name}'")
+        exit(1)
+
+    pdt = parse_datetime(time_max)
+    if not pdt:
+        print(f"The time-max date provided is not valid: '{time_max}'")
+        exit(1)
+
+    interval_int = parse_interval(interval)
+    if not interval_int:
+        print(f"Interval is not a valid integer: '{interval}'")
+        exit(1)
+    else:
+        interval = interval_int * 60 * 60
 
     # Start timer
     start = time.time()
 
-    # This is a provider name
-    provider_name = str(provider_name).lower()
-    time_format = str(time_format).lower()
+    logging.debug("Parsed Date Time:")
+    logging.debug(pdt)
+    logging.debug("Parsed Interval in seconds:")
+    logging.debug(interval)
 
-    # This is a time zone end
-    my_time = MDSTimeZone(
-        date_time_now=datetime(2020, 1, 11, 17),
-        offset=3600,  # One hour
+    # Build timezone aware interval
+    logging.debug("Build time-zone aware interval")
+    tz_time = MDSTimeZone(
+        date_time_now=datetime(pdt["year"], pdt["month"], pdt["day"], pdt["hour"]),
+        offset=interval,  # One hour
         time_zone="US/Central",  # US/Central
     )
 
     # Output generated time stamps on screen
-    logging.debug("Time Start (iso):\t%s" % my_time.get_time_start())
-    logging.debug("Time End   (iso):\t%s" % my_time.get_time_end())
-    logging.debug("Running: %s (time format: %s)" % (provider_name, time_format))
-    logging.debug("time_start (unix):\t%s" % (my_time.get_time_start(utc=True, unix=True)))
-    logging.debug("time_end   (unix):\t%s" % (my_time.get_time_end(utc=True, unix=True)))
-
-    # Fetch the configuration, assume None if not found
-    mds_client_configuration = PROVIDERS.get(provider_name, None)
+    logging.debug("Time Start (iso):\t%s" % tz_time.get_time_start())
+    logging.debug("Time End   (iso):\t%s" % tz_time.get_time_end())
+    logging.debug("time_start (unix):\t%s" % (tz_time.get_time_start(utc=True, unix=True)))
+    logging.debug("time_end   (unix):\t%s" % (tz_time.get_time_end(utc=True, unix=True)))
 
     # Do not proceed if the provider was not found...
     if mds_client_configuration:
@@ -67,13 +122,17 @@ def run(provider_name, time_format):
         mds_client.show_config()
 
         trips = mds_client.get_trips(
-            start_time=my_time.get_time_start(utc=True, unix=True),
-            end_time=my_time.get_time_end(utc=True, unix=True)
+            start_time=tz_time.get_time_start(utc=True, unix=True),
+            end_time=tz_time.get_time_end(utc=True, unix=True)
         )
 
-        logging.debug("\n\nResponse:\n")
-        click.echo(json.dumps(trips))
-        logging.debug("\n\n")
+        if file:
+            with open(file, 'w') as f:
+                json.dump(trips, f)
+        else:
+            logging.debug("\n\nResponse:\n")
+            click.echo(json.dumps(trips))
+            logging.debug("\n\n")
 
     else:
         logging.debug("-------------------------------------------------")
