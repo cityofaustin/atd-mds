@@ -89,4 +89,13 @@ class MDSConfig:
         else:
             return provider_config
 
+    def get_root_data_path(self, provider_name):
+        return f"{self.ATD_MDS_STAGE.lower()}/{provider_name.lower()}"
 
+    def get_data_path(self, provider_name, date):
+        root_path = self.get_root_data_path(provider_name=provider_name)
+        date_time_format = f"{date.year}/{date.month}/{date.day}/{date.hour}/"
+        return f"{root_path}/{date_time_format}"
+
+    def get_setting(self, setting, default):
+        return self._MDS_SETTINGS.get(setting, default)
