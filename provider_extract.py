@@ -3,8 +3,9 @@
 import time
 import click
 from mds import *
-from helpers import *
 from secrets import PROVIDERS
+
+from provider_helpers import *
 
 # Debug & Logging
 import logging
@@ -34,6 +35,11 @@ logger.disabled = False
          "in hours (i.e., from 11 to noon, you would need the value of '1')"
 )
 @click.option(
+    "--time-min",
+    default=None,
+    help="The minimum time where the trip ended in format: 'yyyy-mm-dd-hh'"
+)
+@click.option(
     "--time-max",
     default=None,
     prompt="Max. End Trip Datetime",
@@ -48,6 +54,7 @@ def run(**kwargs):
     provider_name = kwargs.get('provider', None)
     file = kwargs.get('file', None)
     interval = kwargs.get('interval', None)
+    time_min = kwargs.get('time_min', None)
     time_max = kwargs.get('time_max', None)
 
     print(f"""
@@ -69,6 +76,9 @@ def run(**kwargs):
         print(f"Interval not defined")
         exit(1)
 
+    if not time_min:
+        print("Not a range, running for a single cycle")
+
     if not time_max:
         print(f"Max time not defined")
         exit(1)
@@ -79,8 +89,9 @@ def run(**kwargs):
         print(f"The provider configuration could not be loaded for: '{provider_name}'")
         exit(1)
 
-    pdt = parse_datetime(time_max)
-    if not pdt:
+    min_pdt = parse_datetime(time_max)
+    max_pdt = parse_datetime(time_max)
+    if not max_pdt:
         print(f"The time-max date provided is not valid: '{time_max}'")
         exit(1)
 
@@ -95,14 +106,18 @@ def run(**kwargs):
     start = time.time()
 
     logging.debug("Parsed Date Time:")
-    logging.debug(pdt)
+    logging.debug(max_pdt)
     logging.debug("Parsed Interval in seconds:")
     logging.debug(interval)
+
+    # ==========================================================================================
+    # ==========================================================================================
+    # ==========================================================================================
 
     # Build timezone aware interval
     logging.debug("Build time-zone aware interval")
     tz_time = MDSTimeZone(
-        date_time_now=datetime(pdt["year"], pdt["month"], pdt["day"], pdt["hour"]),
+        date_time_now=datetime(max_pdt["year"], max_pdt["month"], max_pdt["day"], max_pdt["hour"]),
         offset=interval,  # One hour
         time_zone="US/Central",  # US/Central
     )
@@ -125,7 +140,9 @@ def run(**kwargs):
             start_time=tz_time.get_time_start(utc=True, unix=True),
             end_time=tz_time.get_time_end(utc=True, unix=True)
         )
-
+        # ==========================================================================================
+        # ==========================================================================================
+        # ==========================================================================================
         if file:
             with open(file, 'w') as f:
                 json.dump(trips, f)
