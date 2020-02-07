@@ -48,3 +48,34 @@ class MDSConfig:
                 }
             )
         )
+
+    def _load_json_file_s3(self, key):
+        """
+        Downloads a file from S3 based on bucket and key parameters. It requires credentials.
+        Returns a populated dict if successful, None if it fails, it may raise an exception
+        if no bucket has been defined.
+        :param str key: The path to the file in the S3 bucket
+        :return: dict
+        """
+        logging.debug(f"MDSConfig::_load_json_file_s3() loading file from S3: '{key}'")
+        if self.ATD_MDS_BUCKET is None:
+            raise Exception(
+                "MDSConfig::_load_json_file_s3() Missing value for ATD_MDS_BUCKET environment variable"
+            )
+        if self.ATD_MDS_ACCESS_KEY is None:
+            raise Exception(
+                "MDSConfig::_load_json_file_s3() Missing value for ATD_MDS_ACCESS_KEY environment variable"
+            )
+        if self.ATD_MDS_SECRET_ACCESS_KEY is None:
+            raise Exception(
+                "MDSConfig::_load_json_file_s3() Missing value for ATD_MDS_SECRET_ACCESS_KEY environment variable"
+            )
+
+        client = boto3.client(
+            "s3",
+            aws_access_key_id=self.ATD_MDS_ACCESS_KEY,
+            aws_secret_access_key=self.ATD_MDS_SECRET_ACCESS_KEY,
+        )
+        data = client.get_object(Bucket=self.ATD_MDS_BUCKET, Key=key)
+        contents = data["Body"].read()
+        return json.loads(contents)
