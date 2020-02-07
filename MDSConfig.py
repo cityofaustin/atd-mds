@@ -79,3 +79,14 @@ class MDSConfig:
         data = client.get_object(Bucket=self.ATD_MDS_BUCKET, Key=key)
         contents = data["Body"].read()
         return json.loads(contents)
+
+    def get_provider_config(self, provider_name):
+        provider_config = self._MDS_PROVIDERS.get(provider_name, None)
+        if provider_config is None:
+            raise Exception(
+                f"MDSConfig::get_provider_config() Unable to find config for provider: provider_name='{provider_name}'"
+            )
+        else:
+            return provider_config
+
+
