@@ -80,3 +80,11 @@ class MDSSchedule:
                     "max_day": self.time_max.day,
                     "max_hour": self.time_max.hour,
                 })
+
+    def get_query(self):
+        return self.query
+
+
+    def get_schedule(self):
+        query = self.get_query()
+        return None
