@@ -30,3 +30,21 @@ class MDSConfig:
         # Internal
         self._MDS_PROVIDERS = self._load_json_file_s3(key=self.ATD_MDS_PROVIDERS)
         self._MDS_SETTINGS = self._load_json_file_s3(key=self.ATD_MDS_SETTINGS)
+
+    def show_config(self):
+        logging.debug("MDSConfig::print() printing configuration...")
+        print(
+            json.dumps(
+                {
+                    "ATD_MDS_REGION": self.ATD_MDS_REGION,
+                    "ATD_MDS_ACCESS_KEY": self.ATD_MDS_ACCESS_KEY,
+                    "ATD_MDS_SECRET_ACCESS_KEY": self.ATD_MDS_SECRET_ACCESS_KEY,
+                    "ATD_MDS_BUCKET": self.ATD_MDS_BUCKET,
+                    "ATD_MDS_STAGE": self.ATD_MDS_STAGE,
+                    "ATD_MDS_PROVIDERS": self.ATD_MDS_PROVIDERS,
+                    "ATD_MDS_SETTINGS": self.ATD_MDS_SETTINGS,
+                    "_MDS_SETTINGS": self._MDS_SETTINGS,
+                    "_MDS_PROVIDERS": self._MDS_PROVIDERS,
+                }
+            )
+        )
