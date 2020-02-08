@@ -31,6 +31,22 @@ class TestMDSSchedule:
     def teardown_class(cls):
         print("All tests finished")
 
+    def test_gql_catches_error(self):
+        try:
+            # This should crash regardless, causing the exception block to execute
+            error_caught = isinstance(gql("""
+                        {
+                            NOT A GraphQL Query, this should be False!
+                        }
+                    """), str)
+            # If gql does not raise an exception, then the test failed
+            error_caught = False
+        except:
+            # This block should always run
+            error_caught = True
+
+        assert error_caught
+
     def test_one_hour_schedule(self):
         time_min = MDSTimeZone(
             date_time_now=datetime(2020, 1, 1, 17),
