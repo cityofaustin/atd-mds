@@ -29,5 +29,5 @@ class TestMDSGraphQLRequests:
         assert isinstance(gql_request, MDSGraphQLRequest)
 
     def test_configuration_settings(self):
-        gql_request.show_config()
-        assert True
+        config = gql_request.get_config()
+        assert isinstance(config, dict)
