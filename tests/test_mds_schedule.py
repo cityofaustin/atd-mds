@@ -47,6 +47,23 @@ class TestMDSSchedule:
 
         assert error_caught
 
+    def test_gql_parses_graphql(self):
+        assert isinstance(gql("""
+                    query fetchPendingSchedules {
+                        api_schedule(
+                            limit: 1
+                        ) {
+                            provider_id
+                            schedule_id
+                            year
+                            month
+                            day
+                            hour
+                            status_id
+                        }
+                    }
+                """), str)
+
     def test_one_hour_schedule(self):
         time_min = MDSTimeZone(
             date_time_now=datetime(2020, 1, 1, 17),
