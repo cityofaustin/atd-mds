@@ -53,4 +53,5 @@ class TestMDSSchedule:
         )
 
         query = mds_shedule.get_query()
-        assert gql(query) is not None
+        print("Query: " + query)
+        assert isinstance(gql(query), str)
