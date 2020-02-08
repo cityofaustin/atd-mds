@@ -20,6 +20,7 @@ gql_request = MDSGraphQLRequest(
     http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", "n/a")
 )
 
+
 class TestMDSSchedule:
 
     @classmethod
