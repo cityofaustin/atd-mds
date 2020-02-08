@@ -1,9 +1,9 @@
-#
-#
-#
+import logging
+
 from datetime import datetime
 from string import Template
-import logging
+
+from MDSGraphQLRequest import MDSGraphQLRequest
 
 class MDSSchedule:
     __slots__ = [
@@ -15,28 +15,43 @@ class MDSSchedule:
         "time_max",
     ]
 
-    def __init__(self, http_graphql_request, provider_id, status_id, time_min, time_max):
+    def __init__(self, http_graphql_request, provider_id, status_id=0, time_max=None, time_min=None):
+        """
+        Constructor for Schedule class.
+        :param MDSGraphQLRequest http_graphql_request: It requires a graphql query class, with which
+        it will make the actual requests to the HTTP endpoint
+        :param int provider_id: The provider ID as identified in the providers table in the RDS MDS instance.
+        :param int status_id: The status id of the schedule we are looking for, default is 0
+        :param datetime time_max: A datetime object that includes the maximum date and hour of the schedule
+        :param datetime time_min: (Optional) A datetime object that indicates the minimum date and hour of the schedule
+        """
         logging.debug("MDSSchedule::__init__() Initializing MDSSchedule")
+        # Initialization
         self.http_graphql_request = http_graphql_request
         self.provider_id = provider_id
         self.status_id = status_id
-        self.time_min = time_min
         self.time_max = time_max
+        self.time_min = time_min
+
+        # Now initialize query
         self._initialize_query()
 
     def _initialize_query(self):
+        """
+        Generates a GraphQL query using the standard Template library, and populates into class variable.
+        :return:
+        """
         logging.debug("MDSSchedule::_initialize_query() Initializing Query")
-        if not isinstance(self.time_min, datetime):
-            logging.debug("MDSSchedule::_initialize_query() time_min not a valid datetime object")
-            raise Exception(
-                "MDSSchedule::_load_time() time_min is expected to be a datetime"
-            )
 
         if not isinstance(self.time_max, datetime):
             logging.debug("MDSSchedule::_initialize_query() time_min not a valid datetime object")
             raise Exception(
                 "MDSSchedule::_load_time() time_max is expected to be a datetime"
             )
+
+        # If time_min is not provided, then we copy from time_max for exactly 1 schedule item
+        if not isinstance(self.time_min, datetime):
+            self.time_min = self.time_max
 
         logging.debug("MDSSchedule::_initialize_query() Generating query...")
         self.query = Template("""
@@ -82,6 +97,10 @@ class MDSSchedule:
                 })
 
     def get_query(self):
+        """
+        Retrieves the query from memory
+        :return str:
+        """
         return self.query
 
 
