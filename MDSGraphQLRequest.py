@@ -10,12 +10,12 @@ class MDSGraphQLRequest:
         self.http_params = kwargs.get("http_params", None)
         self.response = None
 
-    def show_config(self):
-        print({
+    def get_config(self):
+        return {
             "endpoint": self.endpoint,
             "http_params": self.http_params,
             "http_auth_token": self.http_auth_token
-        })
+        }
 
     def request(self, query):
         headers = {
