@@ -106,3 +106,27 @@ class TestMDSSchedule:
         query = mds_shedule.get_query()
         print("Query: " + query)
         assert isinstance(gql(query), str)
+
+    def test_schedule_range(self):
+        time_min = MDSTimeZone(
+            date_time_now=datetime(2020, 1, 1, 0),
+            offset=0,  # Not Needed
+            time_zone="US/Central",  # US/Central
+        )
+
+        time_max = MDSTimeZone(
+            date_time_now=datetime(2020, 1, 1, 17),
+            offset=0,  # Not needed
+            time_zone="US/Central",  # US/Central
+        )
+
+        mds_shedule = MDSSchedule(
+            http_graphql_request=gql_request,
+            provider_id=1,
+            time_min=time_min.get_time_end(),
+            time_max=time_max.get_time_end()
+        )
+
+        query = mds_shedule.get_query()
+        print("Query: " + query)
+        assert isinstance(gql(query), str)
