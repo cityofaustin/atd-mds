@@ -103,7 +103,16 @@ class MDSSchedule:
         """
         return self.query
 
-
     def get_schedule(self):
-        query = self.get_query()
-        return None
+        """
+        Returns a dictionary with the response from the API endpoint
+        :return dict:
+        """
+        # Check if the http_graphql_request variable is a valid MDSGraphQLRequest object
+        if not isinstance(self.http_graphql_request, MDSGraphQLRequest):
+            raise Exception(
+                "MDSSchedule::get_schedule() http_graphql_request is not a MDSGraphQLRequest class"
+            )
+
+        # It looks like it is, let's make the request
+        return self.http_graphql_request.request(self.get_query())
