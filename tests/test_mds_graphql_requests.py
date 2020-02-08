@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import pytest
+
 from parent_directory import *
 
 from MDSConfig import MDSConfig
@@ -15,10 +17,9 @@ gql_request.show_config()
 
 print("Done testing")
 
-
-
-
-
+def test_quicktest():
+    print("Testing here ...")
+    assert True
 
 
 
