@@ -7,24 +7,27 @@ from parent_directory import *
 from MDSConfig import MDSConfig
 from MDSGraphQLRequest import MDSGraphQLRequest
 
+# Assume the config will work as expected
 mds_config = MDSConfig()
 
 gql_request = MDSGraphQLRequest(
     endpoint=mds_config.get_setting("HASURA_ENDPOINT", "n/a"),
     http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", "n/a")
 )
-gql_request.show_config()
-
-print("Done testing")
-
-def test_quicktest():
-    print("Testing here ...")
-    assert True
 
 
+class TestMDSGraphQLRequests:
+    @classmethod
+    def setup_class(cls):
+        print("Beginning tests")
 
+    @classmethod
+    def teardown_class(cls):
+        print("All tests finished")
 
+    def test_constructor(self):
+        assert isinstance(gql_request, MDSGraphQLRequest)
 
-
-
-
+    def test_configuration_settings(self):
+        gql_request.show_config()
+        assert True
