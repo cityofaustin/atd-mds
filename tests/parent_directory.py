@@ -9,4 +9,4 @@ sys.path.insert(0, parent_dir)
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
-logger.disabled = False
+logger.disabled = True
