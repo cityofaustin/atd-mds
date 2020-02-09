@@ -22,14 +22,13 @@ gql_request = MDSGraphQLRequest(
 
 
 class TestMDSSchedule:
-
     @classmethod
     def setup_class(cls):
-        print("Beginning tests")
+        print("Beginning tests for: TestMDSSchedule")
 
     @classmethod
     def teardown_class(cls):
-        print("All tests finished")
+        print("All tests finished for: TestMDSSchedule")
 
     def test_gql_catches_error(self):
         try:
