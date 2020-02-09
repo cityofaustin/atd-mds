@@ -13,11 +13,11 @@ logging.disable(logging.DEBUG)
 class TestMDSConfig:
     @classmethod
     def setup_class(cls):
-        print("Beginning tests")
+        print("Beginning tests for: TestMDSConfig")
 
     @classmethod
     def teardown_class(cls):
-        print("All tests finished")
+        print("All tests finished for: TestMDSConfig")
 
     def test_constructor(self):
         mds_config = MDSConfig()
