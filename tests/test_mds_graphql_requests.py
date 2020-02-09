@@ -19,11 +19,11 @@ gql_request = MDSGraphQLRequest(
 class TestMDSGraphQLRequests:
     @classmethod
     def setup_class(cls):
-        print("Beginning tests")
+        print("Beginning tests for: TestMDSGraphQLRequests")
 
     @classmethod
     def teardown_class(cls):
-        print("All tests finished")
+        print("All tests finished for: TestMDSGraphQLRequests")
 
     def test_constructor(self):
         assert isinstance(gql_request, MDSGraphQLRequest)
