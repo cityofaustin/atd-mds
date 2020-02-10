@@ -47,12 +47,25 @@ class MDSAWS:
             aws_secret_access_key=self.aws_secret_access_key
         )
 
+    @staticmethod
+    def is_json_valid(data):
+        """
+        Returns True if data is a valid json document, otherwise False.
+        :param str data: The json string to evaluate
+        :return bool:
+        """
+        try:
+            json.loads(data)
+            return True
+        except ValueError:
+            return False
+
     def set_json_document(self, json_document):
         """
         Sets the content of the json document to save on S3
         :param str json_document: A string containing the body of the document in plain text
         """
-        self.json_document = json.loads(json_document)
+        self.json_document = json_document if self.is_json_valid(data=json_document) else None
 
     def save(self, file_path):
         """
