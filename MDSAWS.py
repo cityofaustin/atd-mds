@@ -51,7 +51,6 @@ class MDSAWS:
         """
         Sets the content of the json document to save on S3
         :param str json_document: A string containing the body of the document in plain text
-        :return:
         """
         self.json_document = json.loads(json_document)
 
@@ -59,10 +58,23 @@ class MDSAWS:
         """
         The directory and file name (s3 key) to be saved on S3
         :param str file_path: The path and file name desired to store in s3
-        :return: 
+        :return dict: The response from S3
         """
         return self.client.put_object(
             Bucket=self.bucket_name,
             Body=self.json_document,
             Key=file_path
         )
+
+    def get_config(self):
+        """
+        Returns a dictionary with the aws client settings
+        :return dict: The dictionary with the values in memory
+        """
+        return {
+            "aws_default_region": self.aws_default_region,
+            "aws_access_key_id": self.aws_access_key_id[:10],
+            "aws_secret_access_key": self.aws_secret_access_key[:10],
+            "bucket_name": self.bucket_name,
+            "json_document": self.json_document
+        }
