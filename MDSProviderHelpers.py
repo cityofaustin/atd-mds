@@ -34,6 +34,25 @@ class MDSProviderHelpers:
         except:
             return None
 
+    @staticmethod
+    def parse_custom_datetime_as_dt(custom_date_time):
+        """
+        Parses a string in "yyyy-mm-dd-hh" format into a dict object for easy access.
+        Returns None if the string fails to parse.
+        :param str custom_date_time: The date time
+        :return datetime|None:
+        """
+        try:
+            custom_date_components = custom_date_time.split("-")
+            return datetime(
+                int(custom_date_components[0]),
+                int(custom_date_components[1]),
+                int(custom_date_components[2]),
+                int(custom_date_components[3])
+            )
+        except:
+            return None
+
 
     @staticmethod
     def parse_interval(interval):
