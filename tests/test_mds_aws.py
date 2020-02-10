@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import pytest
 
-
+import botocore
 from parent_directory import *
 
 
@@ -123,3 +123,12 @@ class TestMDSAWS:
         )
         mds_aws.set_json_document(json_document=json_document)
         assert isinstance(mds_aws.json_document, str) is False
+
+    def test_client_initializer_success_t1(self):
+        mds_aws = MDSAWS(
+            bucket_name=mds_config.ATD_MDS_BUCKET,
+            aws_default_region=mds_config.ATD_MDS_REGION,
+            aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
+            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
+        )
+        assert mds_aws.client is not None
