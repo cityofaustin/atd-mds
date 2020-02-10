@@ -41,11 +41,14 @@ class MDSAWS:
         Initializes the s3 client
         :return:
         """
-        self.client = boto3.client(
-            's3',
-            aws_access_key_id=self.aws_access_key_id,
-            aws_secret_access_key=self.aws_secret_access_key
-        )
+        try:
+            self.client = boto3.client(
+                's3',
+                aws_access_key_id=self.aws_access_key_id,
+                aws_secret_access_key=self.aws_secret_access_key
+            )
+        except:
+            self.client = None
 
     @staticmethod
     def is_json_valid(data):
