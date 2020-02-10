@@ -3,32 +3,37 @@ import logging
 from datetime import datetime
 from string import Template
 
+from MDSConfig import MDSConfig
 from MDSGraphQLRequest import MDSGraphQLRequest
 
 class MDSSchedule:
     __slots__ = [
         "http_graphql_request",
         "query",
-        "provider_id",
+        "provider_name",
         "status_id",
         "time_min",
         "time_max",
+        "mds_config"
     ]
 
-    def __init__(self, http_graphql_request, provider_id, status_id=0, time_max=None, time_min=None):
+    def __init__(self, mds_config, provider_name, status_id=0, time_max=None, time_min=None):
         """
         Constructor for Schedule class.
-        :param MDSGraphQLRequest http_graphql_request: It requires a graphql query class, with which
-        it will make the actual requests to the HTTP endpoint
-        :param int provider_id: The provider ID as identified in the providers table in the RDS MDS instance.
+        :param MDSConfig mds_config: The configuration class where we can gather our endpoint
+        :param str provider_name: The provider name as identified in the providers table in the RDS MDS instance.
         :param int status_id: The status id of the schedule we are looking for, default is 0
         :param datetime time_max: A datetime object that includes the maximum date and hour of the schedule
         :param datetime time_min: (Optional) A datetime object that indicates the minimum date and hour of the schedule
         """
         logging.debug("MDSSchedule::__init__() Initializing MDSSchedule")
         # Initialization
-        self.http_graphql_request = http_graphql_request
-        self.provider_id = provider_id
+        self.mds_config = mds_config
+        self.http_graphql_request = MDSGraphQLRequest(
+            endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
+            http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
+        )
+        self.provider_name = provider_name
         self.status_id = status_id
         self.time_max = time_max
         self.time_min = time_min
@@ -58,7 +63,7 @@ class MDSSchedule:
                     query fetchPendingSchedules {
                         api_schedule(
                             where: {
-                                provider_id: {_eq: $provider_id }
+                                provider: {provider_name: {_eq: "$provider_name"}},
                                 status_id: {_eq: $status_id},
 
                                 year: {_gte: $min_year},
@@ -84,7 +89,7 @@ class MDSSchedule:
                         }
                     }
                 """).substitute({
-                    "provider_id": self.provider_id,
+                    "provider_name": self.provider_name,
                     "status_id": self.status_id,
                     "min_year": self.time_min.year,
                     "min_month": self.time_min.month,
@@ -115,4 +120,4 @@ class MDSSchedule:
             )
 
         # It looks like it is, let's make the request
-        return self.http_graphql_request.request(self.get_query())
+        return self.http_graphql_request.request(self.get_query())["data"]["api_schedule"]
