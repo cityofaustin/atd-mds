@@ -33,7 +33,7 @@ the tracking and gathering of data, new or old.
   
 ## Configuration
 
-First, it is recomended you take a look in the `MDSConfig.py` class.
+First, it is recommended you take a look in the `MDSConfig.py` class.
 As you will notice, the configuration is downloaded from protected
 files in S3. This is to be able to run clusters of this etl process
 in the cloud with minimal effort, all that is needed is a valid set
@@ -62,14 +62,28 @@ any errors and provides a count of all records processed.
 4. `provider_sync_socrata.py` This file takes the same JSON data and
 transforms it into a socrata dataset and publishes it.
 
-## Modules (Python Classes)
+## Testing
 
 The code is highly modular, this is simplify unit-testing patterns. You,
-can read more about these patterns in the tests folder.
+can [read more about these patterns in the tests folder](./tests).
+
+## Modules (Python Classes)
+
+As previously stated, the code is highly modular to simplify testing patters,
+on top of that, there are other considerations in terms of the architecture
+of this application.
+
+Most code is put into modules that are as thoroughly tested as possible,
+this can help with re-usability, especially for multi-stage complex processes.
 
 All of the modules include a `__slots__` which helps speed up class
 instantiation, which helps performance and makes testing smoother,
 where the same class can be spun up hundreds of times.
+
+The executable scripts include a `#!/usr/bin/env python` header and are given
+executable permissions. These are not classes and utilize the Click library
+to parse options & flags in the terminal, these do not include class types and
+all of its implementation is done with functions.
 
 ## ETL Execution
 
