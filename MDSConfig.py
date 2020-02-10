@@ -3,6 +3,7 @@ import boto3
 import json
 
 import logging
+from MDSAWS import MDSAWS
 
 class MDSConfig:
     __slots__ = [
@@ -16,6 +17,7 @@ class MDSConfig:
         "ATD_MDS_SETTINGS",
         "_MDS_SETTINGS",
         "_MDS_PROVIDERS",
+        "_MDS_AWS",
     ]
 
     def __init__(self):
@@ -27,26 +29,31 @@ class MDSConfig:
         self.ATD_MDS_STAGE = os.getenv("ATD_MDS_RUN_MODE", "STAGING")
         self.ATD_MDS_PROVIDERS = os.getenv("ATD_MDS_PROVIDERS", "config/providers.json")
         self.ATD_MDS_SETTINGS = os.getenv("ATD_MDS_PROVIDERS", f"config/settings_{self.ATD_MDS_STAGE.lower()}.json")
+        self._MDS_AWS = self._initialize_aws()
         # Internal
         self._MDS_PROVIDERS = self._load_json_file_s3(key=self.ATD_MDS_PROVIDERS)
         self._MDS_SETTINGS = self._load_json_file_s3(key=self.ATD_MDS_SETTINGS)
 
-    def show_config(self):
+    def get_config(self):
         logging.debug("MDSConfig::print() printing configuration...")
-        print(
-            json.dumps(
-                {
-                    "ATD_MDS_REGION": self.ATD_MDS_REGION,
-                    "ATD_MDS_ACCESS_KEY": self.ATD_MDS_ACCESS_KEY,
-                    "ATD_MDS_SECRET_ACCESS_KEY": self.ATD_MDS_SECRET_ACCESS_KEY,
-                    "ATD_MDS_BUCKET": self.ATD_MDS_BUCKET,
-                    "ATD_MDS_STAGE": self.ATD_MDS_STAGE,
-                    "ATD_MDS_PROVIDERS": self.ATD_MDS_PROVIDERS,
-                    "ATD_MDS_SETTINGS": self.ATD_MDS_SETTINGS,
-                    "_MDS_SETTINGS": self._MDS_SETTINGS,
-                    "_MDS_PROVIDERS": self._MDS_PROVIDERS,
-                }
-            )
+        return {
+                "ATD_MDS_REGION": self.ATD_MDS_REGION,
+                "ATD_MDS_ACCESS_KEY": self.ATD_MDS_ACCESS_KEY,
+                "ATD_MDS_SECRET_ACCESS_KEY": self.ATD_MDS_SECRET_ACCESS_KEY,
+                "ATD_MDS_BUCKET": self.ATD_MDS_BUCKET,
+                "ATD_MDS_STAGE": self.ATD_MDS_STAGE,
+                "ATD_MDS_PROVIDERS": self.ATD_MDS_PROVIDERS,
+                "ATD_MDS_SETTINGS": self.ATD_MDS_SETTINGS,
+                "_MDS_SETTINGS": self._MDS_SETTINGS,
+                "_MDS_PROVIDERS": self._MDS_PROVIDERS,
+        }
+
+    def _initialize_aws(self):
+        return MDSAWS(
+            bucket_name=self.ATD_MDS_BUCKET,
+            aws_default_region=self.ATD_MDS_REGION,
+            aws_access_key_id=self.ATD_MDS_ACCESS_KEY,
+            aws_secret_access_key=self.ATD_MDS_SECRET_ACCESS_KEY
         )
 
     def _load_json_file_s3(self, key):
@@ -58,27 +65,11 @@ class MDSConfig:
         :return: dict
         """
         logging.debug(f"MDSConfig::_load_json_file_s3() loading file from S3: '{key}'")
-        if self.ATD_MDS_BUCKET is None:
+        if self._MDS_AWS is None:
             raise Exception(
-                "MDSConfig::_load_json_file_s3() Missing value for ATD_MDS_BUCKET environment variable"
+                "MDSConfig::_load_json_file_s3() AWS client not initialized"
             )
-        if self.ATD_MDS_ACCESS_KEY is None:
-            raise Exception(
-                "MDSConfig::_load_json_file_s3() Missing value for ATD_MDS_ACCESS_KEY environment variable"
-            )
-        if self.ATD_MDS_SECRET_ACCESS_KEY is None:
-            raise Exception(
-                "MDSConfig::_load_json_file_s3() Missing value for ATD_MDS_SECRET_ACCESS_KEY environment variable"
-            )
-
-        client = boto3.client(
-            "s3",
-            aws_access_key_id=self.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=self.ATD_MDS_SECRET_ACCESS_KEY,
-        )
-        data = client.get_object(Bucket=self.ATD_MDS_BUCKET, Key=key)
-        contents = data["Body"].read()
-        return json.loads(contents)
+        return self._MDS_AWS.load(file_path=key)
 
     def get_provider_config(self, provider_name):
         provider_config = self._MDS_PROVIDERS.get(provider_name, None)
