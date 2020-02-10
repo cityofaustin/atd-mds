@@ -57,7 +57,7 @@ class MDSAWS:
         try:
             json.loads(data)
             return True
-        except ValueError:
+        except:
             return False
 
     def set_json_document(self, json_document):
