@@ -40,3 +40,10 @@ class MDSAWS:
 
     def set_json_document(self, json_document):
         self.json_document = json.loads(json_document)
+        
+    def save_s3(self, file_name_s3):
+        return self.client.put_object(
+            Bucket=self.bucket_name,
+            Body=self.json_document,
+            Key=file_name_s3
+        )
