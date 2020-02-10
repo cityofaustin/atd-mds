@@ -27,3 +27,12 @@ class MDSAWS:
         self.bucket_name = bucket_name
         self.json_document = None
         self.client = None
+        # Initialize Client and json document
+        self.initialize_client()
+
+    def initialize_client(self):
+        self.client = boto3.client(
+            's3',
+            aws_access_key_id=self.aws_access_key_id,
+            aws_secret_access_key=self.aws_secret_access_key
+        )
