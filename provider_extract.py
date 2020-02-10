@@ -2,10 +2,14 @@
 
 import time
 import click
+import json
+from datetime import datetime
 from mds import *
-from secrets import PROVIDERS
 
-from provider_helpers import *
+from MDSConfig import MDSConfig
+from MDSProviderHelpers import MDSProviderHelpers
+from MDSSchedule import MDSSchedule
+from MDSAWS import MDSAWS
 
 # Debug & Logging
 import logging
@@ -13,6 +17,14 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 logger = logging.getLogger()
 logger.disabled = False
 
+mds_config = MDSConfig()
+mds_provider_helper = MDSProviderHelpers()
+mds_aws = MDSAWS(
+    aws_default_region=mds_config.ATD_MDS_REGION,
+    aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
+    aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
+    bucket_name=mds_config.ATD_MDS_BUCKET
+)
 
 @click.command()
 @click.option(
@@ -20,12 +32,6 @@ logger.disabled = False
     default=None,
     prompt="Provider",
     help="The provider's name",
-)
-@click.option(
-    "--file",
-    default=None,
-    prompt="Output File",
-    help="The json file you would like to validate",
 )
 @click.option(
     "--interval",
@@ -51,110 +57,155 @@ def run(**kwargs):
     :param dict kwargs: The values specified by click decorators.
     :return:
     """
+    # Start timer
+    start = time.time()
+
+    # Begin gathering parameters
     provider_name = kwargs.get('provider', None)
-    file = kwargs.get('file', None)
     interval = kwargs.get('interval', None)
-    time_min = kwargs.get('time_min', None)
     time_max = kwargs.get('time_max', None)
+    time_min = kwargs.get('time_min', None)
 
     print(f"""
         Provider: '{provider_name}'
-        Parsing: '{file}'
         Interval: '{interval}'
         Time Max: '{time_max}'
+        Time Min: '{time_min}'
     """)
 
-    if not provider_name:
+    if provider_name:
+        logging.debug(f"provider_name: {provider_name}")
+    else:
         print(f"Provider is not defined.")
         exit(1)
 
-    if not file:
-        print(f"File {file} is not defined.")
-        exit(1)
-
-    if not interval:
-        print(f"Interval not defined")
-        exit(1)
-
-    if not time_min:
-        print("Not a range, running for a single cycle")
-
-    if not time_max:
+    if time_max:
+        logging.debug(f"time_max: {time_max}")
+    else:
         print(f"Max time not defined")
         exit(1)
 
+    if interval:
+        logging.debug(f"interval: {interval}")
+    else:
+        logger.debug("Interval not defined, assuming 1 hour.")
+        interval = 1
+
+    if time_min:
+        logging.debug(f"time_min: {time_max}")
+        interval = 0
+    else:
+        print("Not a range, running for a single cycle")
+
     # Load the provider configuration
-    mds_client_configuration = PROVIDERS.get(provider_name, None)
+    mds_client_configuration = mds_config.get_provider_config(provider_name=provider_name)
+
     if not mds_client_configuration:
         print(f"The provider configuration could not be loaded for: '{provider_name}'")
         exit(1)
 
-    min_pdt = parse_datetime(time_max)
-    max_pdt = parse_datetime(time_max)
-    if not max_pdt:
+    # Allocate for parsed date times, min and max
+    parsed_date_time_max = mds_provider_helper.parse_custom_datetime_as_dt(time_max)
+    parsed_date_time_min = mds_provider_helper.parse_custom_datetime_as_dt(time_min)
+    parsed_interval = mds_provider_helper.parse_interval(interval)
+
+    # First make sure we have a time-max, if not stop execution.
+    if not parsed_date_time_max:
         print(f"The time-max date provided is not valid: '{time_max}'")
         exit(1)
 
-    interval_int = parse_interval(interval)
-    if not interval_int:
-        print(f"Interval is not a valid integer: '{interval}'")
-        exit(1)
-    else:
-        interval = interval_int * 60 * 60
+    logging.debug(f"Parsed Time Max: {parsed_date_time_max}")
+    logging.debug(f"Parsed Time Min: {parsed_date_time_min}")
+    logging.debug(f"Parsed Interval: {parsed_interval}")
 
-    # Start timer
-    start = time.time()
-
-    logging.debug("Parsed Date Time:")
-    logging.debug(max_pdt)
-    logging.debug("Parsed Interval in seconds:")
-    logging.debug(interval)
-
-    # ==========================================================================================
-    # ==========================================================================================
-    # ==========================================================================================
-
-    # Build timezone aware interval
-    logging.debug("Build time-zone aware interval")
-    tz_time = MDSTimeZone(
-        date_time_now=datetime(max_pdt["year"], max_pdt["month"], max_pdt["day"], max_pdt["hour"]),
-        offset=interval,  # One hour
-        time_zone="US/Central",  # US/Central
-    )
-
-    # Output generated time stamps on screen
-    logging.debug("Time Start (iso):\t%s" % tz_time.get_time_start())
-    logging.debug("Time End   (iso):\t%s" % tz_time.get_time_end())
-    logging.debug("time_start (unix):\t%s" % (tz_time.get_time_start(utc=True, unix=True)))
-    logging.debug("time_end   (unix):\t%s" % (tz_time.get_time_end(utc=True, unix=True)))
-
-    # Do not proceed if the provider was not found...
-    if mds_client_configuration:
-        # Initialize the MDS Client
-        mds_client = MDSClient(config=PROVIDERS[provider_name], provider=provider_name)
-
-        # Show the configuration
-        mds_client.show_config()
-
-        trips = mds_client.get_trips(
-            start_time=tz_time.get_time_start(utc=True, unix=True),
-            end_time=tz_time.get_time_end(utc=True, unix=True)
+    # If we do not have a time-min, then we use the interval
+    if not parsed_date_time_min:
+        logging.debug(f"No time-min defined, using Interval: {parsed_interval}")
+        time_max = MDSTimeZone(
+            date_time_now=parsed_date_time_max,
+            offset=(parsed_interval * 60 * 60),
+            time_zone="US/Central",  # US/Central
         )
-        # ==========================================================================================
-        # ==========================================================================================
-        # ==========================================================================================
-        if file:
-            with open(file, 'w') as f:
-                json.dump(trips, f)
-        else:
-            logging.debug("\n\nResponse:\n")
-            click.echo(json.dumps(trips))
-            logging.debug("\n\n")
 
+        mds_shedule = MDSSchedule(
+            mds_config=mds_config,
+            provider_name=str(provider_name),
+            time_min=time_max.get_time_start(),
+            time_max=time_max.get_time_end()
+        )
     else:
-        logging.debug("-------------------------------------------------")
-        logging.debug("Error, Could not find provider: %s" % provider_name)
-        logging.debug("-------------------------------------------------")
+        logging.debug(f"Time-min is defined, interval cleared.")
+        time_min = MDSTimeZone(
+            date_time_now=parsed_date_time_min,
+            offset=0,  # Not Needed
+            time_zone="US/Central",  # US/Central
+        )
+
+        time_max = MDSTimeZone(
+            date_time_now=parsed_date_time_max,
+            offset=0,  # Not needed
+            time_zone="US/Central",  # US/Central
+        )
+
+        mds_shedule = MDSSchedule(
+            mds_config=mds_config,
+            provider_name=str(provider_name),
+            time_min=time_min.get_time_start(),
+            time_max=time_max.get_time_end()
+        )
+
+    query = mds_shedule.get_query()
+    logging.debug(f"Query: {query}")
+    schedule = mds_shedule.get_schedule()
+    logging.debug(f"Schedule: {json.dumps(schedule)}")
+
+    for schedule_item in schedule:
+        logging.debug("Running with:")
+        logging.debug(schedule_item)
+
+        # Build timezone aware interval...
+        logging.debug("Build timezone aware interval:")
+        tz_time = MDSTimeZone(
+            date_time_now=datetime(schedule_item["year"], schedule_item["month"], schedule_item["day"], schedule_item["hour"]),
+            offset=3600,  # One hour, always
+            time_zone="US/Central",  # US/Central
+        )
+
+        # Output generated time stamps on screen
+        logging.debug("Time Start (iso):\t%s" % tz_time.get_time_start())
+        logging.debug("Time End   (iso):\t%s" % tz_time.get_time_end())
+        logging.debug("time_start (unix):\t%s" % (tz_time.get_time_start(utc=True, unix=True)))
+        logging.debug("time_end   (unix):\t%s" % (tz_time.get_time_end(utc=True, unix=True)))
+
+        logging.debug("Checking if we have a valid configuration: ")
+        if mds_client_configuration:
+            logging.debug("Initializing MDS Client: ")
+            # Initialize the MDS Client
+            mds_client = MDSClient(config=mds_client_configuration, provider=provider_name)
+
+            # Show the configuration
+            mds_client.show_config()
+
+            logging.debug("Getting trips: ")
+            trips = mds_client.get_trips(
+                start_time=tz_time.get_time_start(utc=True, unix=True),
+                end_time=tz_time.get_time_end(utc=True, unix=True)
+            )
+
+            logging.debug("Saving Data to S3...")
+
+            data_path = mds_config.get_data_path(
+                provider_name=provider_name,
+                date=tz_time.get_time_end()
+            )
+            s3_trips_file = data_path + "trips.json"
+
+            mds_aws.save(
+                json_document=json.dumps(trips),
+                file_path=s3_trips_file
+            )
+            
+            logging.debug(f"File saved to {s3_trips_file}")
 
     # Calculate & print overall time
     end = time.time()
