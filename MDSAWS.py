@@ -28,6 +28,7 @@ class MDSAWS:
         self.json_document = None
         self.client = None
         # Initialize Client and json document
+        self.set_json_document(kwargs.get("json_document", None))
         self.initialize_client()
 
     def initialize_client(self):
@@ -36,3 +37,6 @@ class MDSAWS:
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key
         )
+
+    def set_json_document(self, json_document):
+        self.json_document = json.loads(json_document)
