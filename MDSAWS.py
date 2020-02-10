@@ -84,12 +84,16 @@ class MDSAWS:
         """
         self.json_document = json_document if self.is_json_valid(data=json_document) else None
 
-    def save(self, file_path):
+    def save(self, file_path, json_document=None):
         """
         The directory and file name (s3 key) to be saved on S3
         :param str file_path: The path and file name desired to store in s3
+        :param str json_document: A shortcut in case you want to replace the current json_document
         :return dict: The response from S3
         """
+        if json_document:
+            self.json_document = json_document
+
         if self.client is None:
             raise Exception(
                 "MDSAWS::save() Client is not initialized"
