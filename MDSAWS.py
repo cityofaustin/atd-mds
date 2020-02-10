@@ -41,6 +41,20 @@ class MDSAWS:
         Initializes the s3 client
         :return:
         """
+        logging.debug(f"MDSAWS::initialize_client() Initializing AWS S3 Client")
+        if self.bucket_name is None:
+            raise Exception(
+                "MDSAWS::initialize_client() Missing value for ATD_MDS_BUCKET environment variable"
+            )
+        if self.aws_access_key_id is None:
+            raise Exception(
+                "MDSAWS::initialize_client() Missing value for ATD_MDS_ACCESS_KEY environment variable"
+            )
+        if self.aws_secret_access_key is None:
+            raise Exception(
+                "MDSAWS::initialize_client() Missing value for ATD_MDS_SECRET_ACCESS_KEY environment variable"
+            )
+
         try:
             self.client = boto3.client(
                 's3',
@@ -76,11 +90,35 @@ class MDSAWS:
         :param str file_path: The path and file name desired to store in s3
         :return dict: The response from S3
         """
+        if self.client is None:
+            raise Exception(
+                "MDSAWS::save() Client is not initialized"
+            )
+
         return self.client.put_object(
             Bucket=self.bucket_name,
             Body=self.json_document,
             Key=file_path
         )
+
+    def load(self, file_path):
+        """
+        Downloads a file from S3 based on bucket and key parameters. It requires credentials.
+        Returns a populated dict if successful, None if it fails, it may raise an exception
+        if no bucket has been defined.
+        :param str file_path: The path to the file in the S3 bucket
+        :return: dict
+        """
+        if self.client is None:
+            raise Exception(
+                "MDSAWS::load() Client is not initialized"
+            )
+        try:
+            data = self.client.get_object(Bucket=self.bucket_name, Key=file_path)
+            contents = data["Body"].read()
+            return json.loads(contents)
+        except:
+            return None
 
     def get_config(self):
         """
