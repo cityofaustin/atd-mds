@@ -132,3 +132,40 @@ class TestMDSAWS:
             aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
         )
         assert mds_aws.client is not None
+
+    def test_save_file_success_t1(self):
+        mds_aws = MDSAWS(
+            bucket_name=mds_config.ATD_MDS_BUCKET,
+            aws_default_region=mds_config.ATD_MDS_REGION,
+            aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
+            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
+        )
+        file_path = "tests/json_save_test1.json"
+        initial_file_content = """
+        {
+            "glossary": {
+                "title": "example glossary",
+                "GlossDiv": {
+                    "title": "S",
+                    "GlossList": {
+                        "GlossEntry": {
+                            "ID": "SGML",
+                            "SortAs": "SGML",
+                            "GlossTerm": "Standard Generalized Markup Language",
+                            "Acronym": "SGML",
+                            "Abbrev": "ISO 8879:1986",
+                            "GlossDef": {
+                                "para": "A meta-markup language, used to create markup languages such as DocBook.",
+                                "GlossSeeAlso": ["GML", "XML"]
+                            },
+                            "GlossSee": "markup"
+                        }
+                    }
+                }
+            }
+        }
+        """
+        mds_aws.set_json_document(json_document=initial_file_content)
+        mds_aws.save(file_path=file_path)
+        file_content = mds_aws.load(file_path=file_path)
+        assert file_content == file_content
