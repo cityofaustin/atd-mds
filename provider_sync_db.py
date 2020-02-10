@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
-import time
 import click
-from mds import *
 from provider_helpers import *
-from secrets import PROVIDERS
 
 # Debug & Logging
 import logging
