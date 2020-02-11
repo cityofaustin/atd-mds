@@ -34,9 +34,9 @@ class MDSTrip:
         "publication_time": {"type": "integer"},
     }
 
-    graphql_template = """
+    graphql_template_insert = """
         mutation insertTrip {
-          insert_api_dockless(
+          insert_api_trips(
             objects: {
                 trip_id: "$trip_id",
                 accuracy: "$accuracy",
@@ -57,12 +57,29 @@ class MDSTrip:
             on_conflict: {
                 constraint: new_constraint_name,
                 update_columns: [
+                    provider_id,
+                    provider_name,
+                    device_id,
+                    vehicle_type,
+                    accuracy,
+                    propulsion_type,
+                    trip_id,
+                    trip_duration,
+                    trip_distance,
                     start_time,
                     end_time
                 ],
             }
         ) {
             affected_rows
+          }
+        }
+    """
+
+    graphql_template_search = """
+        query getTrip {
+          api_trips(where: {trip_id: {_eq: "$trip_id"}}) {
+            trip_id
           }
         }
     """
@@ -94,6 +111,8 @@ class MDSTrip:
         :return bool:
         """
         if self.is_valid():
+            query = self.generate_gql_insert()
+            response = self.mds_http_graphql.request(query)
             return True
         else:
             return False
@@ -108,11 +127,58 @@ class MDSTrip:
         else:
             return False
 
-    def generate_gql(self) -> str:
+    def generate_gql_insert(self) -> str:
         """
         Generates a string with a GraphQL query
         :return str:
         """
-        template = Template(self.graphql_template)
-        s = template.substitute(self.trip_data)
-        return s
+        return Template(self.graphql_template_insert).substitute(self.trip_data)
+
+    def generate_gql_search(self, trip_id) -> str:
+        """
+        Generates a string with a GraphQL query to search for a record.
+        :return str:
+        """
+        return Template(self.graphql_template_search).substitute({
+            "trip_id": trip_id
+        })
+
+    def get_coordinates(self, start=True) -> (float, float):
+        """
+        Returns a tuple with coordinates for current loaded trip: (longitude, latitude)
+        The start of the trip is enabled by default, or the end of the trip if start is set to False.
+        Returns a tuple with longitude and latitude (in that order).
+        :param bool start:
+        :return (float, float):
+        """
+        # The index is the first element, or the last.
+        index = 0 if start else (len(self.trip_data["route"]["features"]) - 1)
+        coordinates = self.trip_data["route"]["features"][index]["geometry"]["coordinates"]
+        return coordinates[0], coordinates[1]
+
+    def get_council_district(self) -> str:
+        """
+        Returns a string with the council district id.
+        :return str:
+        """
+        if self.trip_data:
+            pass
+        return ""
+
+    def get_cell_id(self) -> str:
+        """
+        Returns a string with the cell id.
+        :return str:
+        """
+        if self.trip_data:
+            pass
+        return ""
+
+    def get_census_geoid(self) -> str:
+        """
+        Returns a string with the census geoid.
+        :return str:
+        """
+        if self.trip_data:
+            pass
+        return ""
