@@ -69,13 +69,59 @@ class TestMDSTrip:
             mds_config=mds_config,
             trip_data=trip_data
         )
-        query = mds_trip.generate_gql()
+        query = mds_trip.generate_gql_insert()
+        print("GQL: ")
+        print(query)
         assert isinstance(
             gql(query),
             str
         )
 
-
     def test_save_fail_t1(self):
         assert True
+
+    def test_search_success_t1(self):
+        with open("tests/trip_sample_data_valid.json") as f:
+            trip_data = json.load(f)
+
+        mds_trip = MDSTrip(
+            mds_config=mds_config,
+            trip_data=trip_data
+        )
+        query = mds_trip.generate_gql_search("123456789")
+        print("GQL: ")
+        print(query)
+        assert isinstance(
+            gql(query),
+            str
+        )
+
+    def test_search_fail_t1(self):
+        assert True
+
+    def test_get_coordinates_start_success_t1(self):
+        with open("tests/trip_sample_data_valid.json") as f:
+            trip_data = json.load(f)
+
+        mds_trip = MDSTrip(
+            mds_config=mds_config,
+            trip_data=trip_data
+        )
+        start_long, start_lat = mds_trip.get_coordinates(start=True)
+
+        print(f"start_long: {start_long}")
+        print(f"start_lat: {start_lat}")
+
+    def test_get_coordinates_end_success_t1(self):
+        with open("tests/trip_sample_data_valid.json") as f:
+            trip_data = json.load(f)
+
+        mds_trip = MDSTrip(
+            mds_config=mds_config,
+            trip_data=trip_data
+        )
+        start_long, start_lat = mds_trip.get_coordinates(start=False)
+
+        print(f"start_long: {start_long}")
+        print(f"start_lat: {start_lat}")
 
