@@ -7,24 +7,35 @@ the tracking and gathering of data, new or old.
 
 ## Getting Started
 
-1. Create a virtual environment:
+1. Install binary dependencies:
+    You will need to install `libspatialindex`,  follow this link to learn more
+    on how to install it on your computer. For a mac, all you need to do
+    is to run brew:
+    
+    ```
+    $ brew install spatialindex
+    ```
+
+2. Create a virtual environment & run pip:
    
     ```
-    virtualenv venv
+    $ virtualenv venv
+    $ source venv/bin/activate
+    $ pip install -r requirements.txt
     ```
     
-2. Set up these environment variables in your shell terminal (with proper values):
+3. Set up these environment variables in your shell terminal (with proper values):
 
     ```
-    export ATD_MDS_BUCKET="the-mds-bucket-name";
-    export AWS_DEFALUT_REGION="us-east-1"
-    export AWS_ACCESS_KEY_ID="YOUR_ACCESS_KEY"
-    export AWS_SECRET_ACCESS_KEY="YOUR_SECRET_KEY"
+    $ export ATD_MDS_BUCKET="the-mds-bucket-name";
+    $ export AWS_DEFALUT_REGION="us-east-1"
+    $ export AWS_ACCESS_KEY_ID="YOUR_ACCESS_KEY"
+    $ export AWS_SECRET_ACCESS_KEY="YOUR_SECRET_KEY"
     ``` 
-3. Run tests:
+4. Run tests:
     
    ```
-   pytest -v
+   $ pytest -v
    ```
 
     The tests will indicate any problems you may have in the system,
