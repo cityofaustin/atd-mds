@@ -6,15 +6,16 @@ from string import Template
 from MDSConfig import MDSConfig
 from MDSGraphQLRequest import MDSGraphQLRequest
 
+
 class MDSSchedule:
     __slots__ = [
-        "http_graphql_request",
+        "mds_config",
+        "mds_http_graphql",
         "query",
         "provider_name",
         "status_id",
         "time_min",
         "time_max",
-        "mds_config"
     ]
 
     def __init__(self, mds_config, provider_name, status_id=0, time_max=None, time_min=None):
@@ -29,7 +30,7 @@ class MDSSchedule:
         logging.debug("MDSSchedule::__init__() Initializing MDSSchedule")
         # Initialization
         self.mds_config = mds_config
-        self.http_graphql_request = MDSGraphQLRequest(
+        self.mds_http_graphql = MDSGraphQLRequest(
             endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
             http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
         )
@@ -113,11 +114,11 @@ class MDSSchedule:
         Returns a dictionary with the response from the API endpoint
         :return dict:
         """
-        # Check if the http_graphql_request variable is a valid MDSGraphQLRequest object
-        if not isinstance(self.http_graphql_request, MDSGraphQLRequest):
+        # Check if the mds_http_graphql variable is a valid MDSGraphQLRequest object
+        if not isinstance(self.mds_http_graphql, MDSGraphQLRequest):
             raise Exception(
                 "MDSSchedule::get_schedule() http_graphql_request is not a MDSGraphQLRequest class"
             )
 
         # It looks like it is, let's make the request
-        return self.http_graphql_request.request(self.get_query())["data"]["api_schedule"]
+        return self.mds_http_graphql.request(self.get_query())["data"]["api_schedule"]
