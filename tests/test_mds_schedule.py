@@ -160,7 +160,7 @@ class TestMDSSchedule:
         print("Query: " + query)
         schedule = mds_shedule.get_schedule()
         print("Schedule: " + json.dumps(schedule))
-        success_a = isinstance(schedule, dict)
+        success_a = isinstance(schedule, list)
         success_b = False if "errors" in schedule else True
         assert success_a and success_b
 
