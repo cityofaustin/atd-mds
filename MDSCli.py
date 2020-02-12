@@ -48,6 +48,13 @@ class MDSCli:
         self.parsed_date_time_min = self.helpers.parse_custom_datetime_as_dt(self.time_min)
         self.parsed_interval = self.helpers.parse_interval(self.interval)
 
+    def get_timer_end(self) -> (int, int, int):
+        # Calculate & print overall time
+        self._timer_end = time.time()
+        hours, rem = divmod(self._timer_end - self._timer_start, 3600)
+        minutes, seconds = divmod(rem, 60)
+        return hours, minutes, seconds
+
     def get_config(self) -> dict:
         """
         Returns a dictionary with the current configuration
