@@ -47,7 +47,11 @@ class MDSConfig:
         self._MDS_PROVIDERS = self._load_json_file_s3(key=self.ATD_MDS_PROVIDERS)
         self._MDS_SETTINGS = self._load_json_file_s3(key=self.ATD_MDS_SETTINGS)
 
-    def get_config(self):
+    def get_config(self) -> dict:
+        """
+        Returns a dictionary with the current settings.
+        :return dict:
+        """
         logging.debug("MDSConfig::print() printing configuration...")
         return {
             "ATD_MDS_REGION": self.ATD_MDS_REGION,
@@ -61,7 +65,11 @@ class MDSConfig:
             "_MDS_PROVIDERS": self._MDS_PROVIDERS,
         }
 
-    def _initialize_aws(self):
+    def _initialize_aws(self) -> MDSAWS:
+        """
+        Initializes the MDS AWS Class
+        :return MDSAWS:
+        """
         return MDSAWS(
             bucket_name=self.ATD_MDS_BUCKET,
             aws_default_region=self.ATD_MDS_REGION,
@@ -69,13 +77,13 @@ class MDSConfig:
             aws_secret_access_key=self.ATD_MDS_SECRET_ACCESS_KEY,
         )
 
-    def _load_json_file_s3(self, key):
+    def _load_json_file_s3(self, key) -> dict:
         """
         Downloads a file from S3 based on bucket and key parameters. It requires credentials.
         Returns a populated dict if successful, None if it fails, it may raise an exception
         if no bucket has been defined.
         :param str key: The path to the file in the S3 bucket
-        :return: dict
+        :return dict:
         """
         logging.debug(f"MDSConfig::_load_json_file_s3() loading file from S3: '{key}'")
         if self._MDS_AWS is None:
@@ -84,7 +92,12 @@ class MDSConfig:
             )
         return self._MDS_AWS.load(file_path=key)
 
-    def get_provider_config(self, provider_name):
+    def get_provider_config(self, provider_name) -> dict:
+        """
+        Returns a dictionary with the provider settings (as loaded from S3).
+        :param str provider_name: The name of the provider
+        :return dict:
+        """
         provider_config = self._MDS_PROVIDERS.get(provider_name, None)
         if provider_config is None:
             raise Exception(
@@ -93,13 +106,30 @@ class MDSConfig:
         else:
             return provider_config
 
-    def get_root_data_path(self, provider_name):
+    def get_root_data_path(self, provider_name) -> str:
+        """
+        Returns the data root path in the S3 bucket for a provider.
+        :param str provider_name: The name of the provider
+        :return str:
+        """
         return f"{self.ATD_MDS_STAGE.lower()}/{provider_name.lower()}"
 
-    def get_data_path(self, provider_name, date):
+    def get_data_path(self, provider_name, date) -> str:
+        """
+        Returns the data path for a provider for a specific date.
+        :param str provider_name: The name of the provider
+        :param datetime date: A datetime object
+        :return str:
+        """
         root_path = self.get_root_data_path(provider_name=provider_name)
         date_time_format = f"{date.year}/{date.month}/{date.day}/{date.hour}/"
         return f"{root_path}/{date_time_format}"
 
-    def get_setting(self, setting, default):
+    def get_setting(self, setting, default) -> str:
+        """
+        Returns the MDS setting by name from the loaded configuration.
+        :param str setting: The name of the setting
+        :param * default: The default value you would want it to assume if not found.
+        :return str:
+        """
         return self._MDS_SETTINGS.get(setting, default)
