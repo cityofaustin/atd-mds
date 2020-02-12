@@ -65,7 +65,7 @@ class MDSAWS:
             self.client = None
 
     @staticmethod
-    def is_json_valid(data):
+    def is_json_valid(data) -> bool:
         """
         Returns True if data is a valid json document, otherwise False.
         :param str data: The json string to evaluate
@@ -84,7 +84,7 @@ class MDSAWS:
         """
         self.json_document = json_document if self.is_json_valid(data=json_document) else None
 
-    def save(self, file_path, json_document=None):
+    def save(self, file_path, json_document=None) -> dict:
         """
         The directory and file name (s3 key) to be saved on S3
         :param str file_path: The path and file name desired to store in s3
@@ -105,13 +105,13 @@ class MDSAWS:
             Key=file_path
         )
 
-    def load(self, file_path):
+    def load(self, file_path) -> dict:
         """
         Downloads a file from S3 based on bucket and key parameters. It requires credentials.
         Returns a populated dict if successful, None if it fails, it may raise an exception
         if no bucket has been defined.
         :param str file_path: The path to the file in the S3 bucket
-        :return: dict
+        :return dict:
         """
         if self.client is None:
             raise Exception(
@@ -122,9 +122,9 @@ class MDSAWS:
             contents = data["Body"].read()
             return json.loads(contents)
         except:
-            return None
+            return {}
 
-    def get_config(self):
+    def get_config(self) -> dict:
         """
         Returns a dictionary with the aws client settings
         :return dict: The dictionary with the values in memory
