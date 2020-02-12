@@ -133,7 +133,7 @@ def run(**kwargs):
         all_trips += trips
 
     if file:
-        with open(f"{file}.json", "w") as json_file:
+        with open(f"{file}", "w") as json_file:
             json.dump(all_trips, json_file)
 
     # Gather timer end & output to console...
