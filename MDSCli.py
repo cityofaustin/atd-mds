@@ -122,7 +122,7 @@ class MDSCli:
             self.mds_schedule = MDSSchedule(
                 mds_config=self.mds_config,
                 provider_name=str(self.provider),
-                time_min=time_max.get_time_start(),
+                time_min=time_max.get_time_end(),
                 time_max=time_max.get_time_end()
             )
         else:
