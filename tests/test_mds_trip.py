@@ -135,4 +135,3 @@ class TestMDSTrip:
 
         print(f"start_long: {start_long}")
         print(f"start_lat: {start_lat}")
-
