@@ -12,6 +12,7 @@ class MDSCli:
     __slots__ = [
         "mds_config",
         "mds_schedule",
+        "mds_provider",
         "provider",
         "interval",
         "time_max",
@@ -43,10 +44,14 @@ class MDSCli:
         self.interval = interval
         self.time_max = time_max
         self.time_min = time_min
-        # Parse datetimes
+        # Parse date times
         self.parsed_date_time_max = self.helpers.parse_custom_datetime_as_dt(self.time_max)
         self.parsed_date_time_min = self.helpers.parse_custom_datetime_as_dt(self.time_min)
         self.parsed_interval = self.helpers.parse_interval(self.interval)
+        # Initialize mds_provider
+        self.mds_provider = self.mds_config.get_provider_config(
+            provider_name=self.provider
+        )
 
     def get_timer_end(self) -> (int, int, int):
         # Calculate & print overall time
@@ -97,6 +102,12 @@ class MDSCli:
             logging.debug(f"The time-max date provided is not valid: '{self.time_max}'")
             return False
 
+        if not self.mds_provider:
+            print(
+                f"The provider configuration could not be loaded for: '{self.provider}'"
+            )
+            return False
+
         return True
 
     def initialize_schedule(self) -> MDSSchedule:
@@ -110,7 +121,7 @@ class MDSCli:
             )
             self.mds_schedule = MDSSchedule(
                 mds_config=self.mds_config,
-                provider_name=str(self.provider_name),
+                provider_name=str(self.provider),
                 time_min=time_max.get_time_start(),
                 time_max=time_max.get_time_end()
             )
@@ -130,7 +141,7 @@ class MDSCli:
 
             self.mds_schedule = MDSSchedule(
                 mds_config=self.mds_config,
-                provider_name=str(self.provider_name),
+                provider_name=str(self.provider),
                 time_min=time_min.get_time_start(),
                 time_max=time_max.get_time_end()
             )
