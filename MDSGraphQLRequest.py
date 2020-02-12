@@ -11,7 +11,11 @@ class MDSGraphQLRequest:
         self.http_params = kwargs.get("http_params", None)
         self.response = None
 
-    def get_config(self):
+    def get_config(self) -> dict:
+        """
+        Returns a dictionary with the loaded settings for this class.
+        :return dict:
+        """
         logging.debug("MDSGraphQLRequest::get_config() getting config")
         return {
             "endpoint": self.endpoint,
@@ -19,7 +23,12 @@ class MDSGraphQLRequest:
             "http_auth_token": self.http_auth_token
         }
 
-    def request(self, query):
+    def request(self, query) -> dict:
+        """
+        Makes a GraphQL HTTP request to an endpoint, returns a dictionary with the response.
+        :param str query: The GraphQL query
+        :return dict:
+        """
         logging.debug("MDSGraphQLRequest::request() Making request")
         headers = {
             "Accept": "*/*",
@@ -41,5 +50,9 @@ class MDSGraphQLRequest:
         self.response.encoding = "utf-8"
         return self.response.json()
 
-    def get_last_response(self):
+    def get_last_response(self) -> dict:
+        """
+        Returns the last response from the endpoint.
+        :return dict:
+        """
         return self.response.json()
