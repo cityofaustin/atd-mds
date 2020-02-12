@@ -4,15 +4,21 @@ from string import Template
 
 from MDSGraphQLRequest import MDSGraphQLRequest
 from cerberus import Validator
-
+from shapely.geometry import shape, point
 
 class MDSTrip:
     __slots__ = [
         "mds_config",
+        "mds_pip",
         "mds_http_graphql",
         "mds_graphql_query",
         "trip_data",
         "validator",
+        "point_start",
+        "point_end",
+        "poly_census_tract_id",
+        "poly_district_id",
+        "poly_hex_id",
     ]
 
     validation_schema = {
@@ -84,19 +90,27 @@ class MDSTrip:
         }
     """
 
-    def __init__(self, mds_config, trip_data):
+    def __init__(self, mds_config, mds_pip, trip_data):
         # Initialize our configuration
         self.mds_config = mds_config
+        self.mds_pip = mds_pip
         # Initialize our HTTP GraphQL Class
         self.mds_http_graphql = MDSGraphQLRequest(
             endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
             http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
         )
+        # Initializes the cerberus validator
+        self.validator = Validator(self.validation_schema, require_all=True)
         # Then initialize our trip data
         self.trip_data = trip_data
         self.mds_graphql_query = None
-        # Initializes the cerberus validator
-        self.validator = Validator(self.validation_schema, require_all=True)
+        # Shapely point attributes for the start and end coordinates
+        self.point_start = None
+        self.point_end = None
+        # Other trip attributes we need to figure out later with the above start/end points
+        self.poly_census_tract_id = None
+        self.poly_district_id = None
+        self.poly_hex_id = None
 
     def is_valid(self) -> bool:
         """
@@ -182,3 +196,13 @@ class MDSTrip:
         if self.trip_data:
             pass
         return ""
+
+    def initialize_points(self):
+        # If the Trips data is valid (has proper format), let's initialize the trip's shapely points
+        if self.is_valid():
+            # Initialize the start point
+            longitude, latitude = self.get_coordinates(start=True)
+            self.point_start = point.Point(float(latitude), float(longitude))
+
+            longitude, latitude = self.get_coordinates(start=False)
+            self.point_end = point.Point(float(latitude), float(longitude))
