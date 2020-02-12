@@ -59,7 +59,7 @@ python code and classes.
 
 First make sure you have the requirements by running `pip install -r requirements.txt`, after that you should be able to run:
 
-For verbosity:
+To run all tests with some verbosity:
 
 ```
 pytest -v
@@ -69,6 +69,18 @@ For additional verbosity and logging:
 
 ```
 pytest -v -s
+```
+
+To run a specific test (example):
+
+```
+pytest -v tests/test_mds_point_in_polygon.py
+```
+
+To run a specific test with additional verbosity:
+
+```
+pytest -vs tests/test_mds_point_in_polygon.py
 ```
 
 Tests should be run from the parent directory,
