@@ -53,4 +53,29 @@ class MDSCli:
             "time_min": self.time_min,
         }
 
-    
+    def valid_settings(self) -> bool:
+        if self.provider:
+            logging.debug(f"MDSCli::validate_settings() provider: {self.provider}")
+        else:
+            print(f"MDSCli::validate_settings() Provider is not defined.")
+            return False
+
+        if self.time_max:
+            logging.debug(f"MDSCli::validate_settings() time_max: {self.time_max}")
+        else:
+            print(f"MDSCli::validate_settings() Max time not defined")
+            return False
+
+        if self.interval:
+            logging.debug(f"MDSCli::validate_settings() interval: {self.interval}")
+        else:
+            logging.debug("MDSCli::validate_settings() Interval not defined, assuming 1 hour.")
+            self.interval = 1
+
+        if self.time_min:
+            logging.debug(f"MDSCli::validate_settings() time_min: {self.time_max}")
+            self.interval = 0
+        else:
+            logging.debug("MDSCli::validate_settings() Not a range, running for a single cycle")
+
+        return True
