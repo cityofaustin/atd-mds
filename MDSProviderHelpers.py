@@ -4,11 +4,11 @@ import json
 
 class MDSProviderHelpers:
     @staticmethod
-    def parse_timestamp(unix_timestamp):
+    def parse_timestamp(unix_timestamp) -> datetime:
         """
         Parses a unix epoch timestamp and returns a datetime object
         :param int unix_timestamp: The unix epoch timestamp
-        :return datetime:
+        :return datetime|None:
         """
         try:
             return datetime.fromtimestamp(int(unix_timestamp))
@@ -16,7 +16,7 @@ class MDSProviderHelpers:
             return None
 
     @staticmethod
-    def parse_custom_datetime(custom_date_time):
+    def parse_custom_datetime(custom_date_time) -> dict:
         """
         Parses a string in "yyyy-mm-dd-hh" format into a dict object for easy access.
         Returns None if the string fails to parse.
@@ -35,7 +35,7 @@ class MDSProviderHelpers:
             return None
 
     @staticmethod
-    def parse_custom_datetime_as_dt(custom_date_time):
+    def parse_custom_datetime_as_dt(custom_date_time) -> datetime:
         """
         Parses a string in "yyyy-mm-dd-hh" format into a dict object for easy access.
         Returns None if the string fails to parse.
@@ -48,14 +48,13 @@ class MDSProviderHelpers:
                 int(custom_date_components[0]),
                 int(custom_date_components[1]),
                 int(custom_date_components[2]),
-                int(custom_date_components[3])
+                int(custom_date_components[3]),
             )
         except:
             return None
 
-
     @staticmethod
-    def parse_interval(interval):
+    def parse_interval(interval) -> int:
         """
         Tries to parse a string into an int, returns None if it fails.
         :param str interval:
@@ -67,7 +66,7 @@ class MDSProviderHelpers:
             return None
 
     @staticmethod
-    def load_file(file_name):
+    def load_file(file_name) -> dict:
         """
         Loads a json file from disk and returns a dictionary, or None if it fails to parse
         :param str file_name: The physical location of the file
