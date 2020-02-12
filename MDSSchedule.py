@@ -102,14 +102,14 @@ class MDSSchedule:
                     "max_hour": self.time_max.hour,
                 })
 
-    def get_query(self):
+    def get_query(self) -> str:
         """
         Retrieves the query from memory
         :return str:
         """
         return self.query
 
-    def get_schedule(self):
+    def get_schedule(self) -> dict:
         """
         Returns a dictionary with the response from the API endpoint
         :return dict:
