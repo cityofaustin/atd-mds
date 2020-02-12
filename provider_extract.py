@@ -30,6 +30,11 @@ mds_aws = MDSAWS(
     "--provider", default=None, help="The provider's name",
 )
 @click.option(
+    "--file",
+    default=None,
+    help="Use this flag to output to a file.",
+)
+@click.option(
     "--interval",
     default=None,
     help="Relative to the maximum time for trip end, an interval window "
@@ -59,6 +64,8 @@ def run(**kwargs):
         time_min=kwargs.get("time_min", None),
     )
 
+    file = kwargs.get("file", None)
+
     print(f"Settings: {str(mds_cli.get_config())}")
 
     # Check the CLI settings...
@@ -81,6 +88,8 @@ def run(**kwargs):
     mds_client = MDSClient(
         config=mds_cli.mds_provider, provider=mds_cli.provider
     )
+
+    all_trips = []
 
     # For each schedule item:
     for schedule_item in schedule:
@@ -120,6 +129,12 @@ def run(**kwargs):
         logging.debug("Saving Data to S3 ...")
         mds_aws.save(json_document=json.dumps(trips), file_path=s3_trips_file)
         logging.debug(f"File saved to {s3_trips_file}")
+        # Accumulate
+        all_trips += trips
+
+    if file:
+        with open(f"{file}.json", "w") as json_file:
+            json.dump(all_trips, json_file)
 
     # Gather timer end & output to console...
     hours, minutes, seconds = mds_cli.get_timer_end()
