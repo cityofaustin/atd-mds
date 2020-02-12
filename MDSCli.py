@@ -40,3 +40,17 @@ class MDSCli:
         self.parsed_date_time_min = self.helpers.parse_custom_datetime_as_dt(self.time_min)
         self.parsed_interval = self.helpers.parse_interval(self.interval)
 
+    def get_config(self) -> dict:
+        """
+        Returns a dictionary with the current configuration
+        :return:
+        """
+        logging.debug(f"MDSCli::get_config() getting configuration ...")
+        return {
+            "provider": self.provider,
+            "interval": self.interval,
+            "time_max": self.time_max,
+            "time_min": self.time_min,
+        }
+
+    
