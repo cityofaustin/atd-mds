@@ -10,9 +10,12 @@ from ariadne import gql
 
 from MDSConfig import MDSConfig
 from MDSTrip import MDSTrip
+from MDSPointInPolygon import MDSPointInPolygon
 
 # Assumes MDSConfig works as expected
 mds_config = MDSConfig()
+mds_pip = MDSPointInPolygon(mds_config=mds_config, autoload=True)
+
 
 class TestMDSTrip:
     @classmethod
@@ -26,6 +29,7 @@ class TestMDSTrip:
     def test_constructor_success_t1(self):
         mds_trip = MDSTrip(
             mds_config=mds_config,
+            mds_pip=mds_pip,
             trip_data={"trip": "data"}
         )
         assert isinstance(mds_trip, MDSTrip)
@@ -34,6 +38,7 @@ class TestMDSTrip:
         try:
             mds_trip = MDSTrip(
                 mds_config=None,
+                mds_pip=mds_pip,
                 trip_data=None
             )
             # If the execution gets to this point, the test is a failure
@@ -47,6 +52,7 @@ class TestMDSTrip:
             trip_data = json.load(f)
         mds_trip = MDSTrip(
             mds_config=mds_config,
+            mds_pip=mds_pip,
             trip_data=trip_data
         )
         assert mds_trip.is_valid()
@@ -56,6 +62,7 @@ class TestMDSTrip:
             trip_data = json.load(f)
         mds_trip = MDSTrip(
             mds_config=mds_config,
+            mds_pip=mds_pip,
             trip_data=trip_data
         )
         # If the trip is marked as valid, then the test failed.
@@ -67,6 +74,7 @@ class TestMDSTrip:
 
         mds_trip = MDSTrip(
             mds_config=mds_config,
+            mds_pip=mds_pip,
             trip_data=trip_data
         )
         query = mds_trip.generate_gql_insert()
@@ -86,6 +94,7 @@ class TestMDSTrip:
 
         mds_trip = MDSTrip(
             mds_config=mds_config,
+            mds_pip=mds_pip,
             trip_data=trip_data
         )
         query = mds_trip.generate_gql_search("123456789")
@@ -105,6 +114,7 @@ class TestMDSTrip:
 
         mds_trip = MDSTrip(
             mds_config=mds_config,
+            mds_pip=mds_pip,
             trip_data=trip_data
         )
         start_long, start_lat = mds_trip.get_coordinates(start=True)
@@ -118,6 +128,7 @@ class TestMDSTrip:
 
         mds_trip = MDSTrip(
             mds_config=mds_config,
+            mds_pip=mds_pip,
             trip_data=trip_data
         )
         start_long, start_lat = mds_trip.get_coordinates(start=False)
