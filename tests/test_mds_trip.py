@@ -11,11 +11,15 @@ from ariadne import gql
 from MDSConfig import MDSConfig
 from MDSTrip import MDSTrip
 from MDSPointInPolygon import MDSPointInPolygon
+from MDSGraphQLRequest import MDSGraphQLRequest
 
 # Assumes MDSConfig works as expected
 mds_config = MDSConfig()
 mds_pip = MDSPointInPolygon(mds_config=mds_config, autoload=True)
-
+mds_gql = MDSGraphQLRequest(
+    endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
+    http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
+)
 
 class TestMDSTrip:
     @classmethod
@@ -29,18 +33,18 @@ class TestMDSTrip:
     def test_constructor_success_t1(self):
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
-        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, trip_data=trip_data)
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
         assert isinstance(mds_trip, MDSTrip)
 
     def test_constructor_fail_t1(self):
         mds_trip = MDSTrip(
-            mds_config=mds_config, mds_pip=mds_pip, trip_data={"trip": "data"}
+            mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data={"trip": "data"}
         )
         isinstance(mds_trip, MDSTrip)
 
     def test_constructor_fail_t2(self):
         try:
-            mds_trip = MDSTrip(mds_config=None, mds_pip=mds_pip, trip_data=None)
+            mds_trip = MDSTrip(mds_config=None, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=None)
             # If the execution gets to this point, the test is a failure
             assert False
         except:
@@ -50,13 +54,13 @@ class TestMDSTrip:
     def test_validator_success_t1(self):
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
-        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, trip_data=trip_data)
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
         assert mds_trip.is_valid()
 
     def test_validator_fail_t1(self):
         with open("tests/trip_sample_data_not_valid.json") as f:
             trip_data = json.load(f)
-        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, trip_data=trip_data)
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
         # If the trip is marked as valid, then the test failed.
         assert mds_trip.is_valid() is False
 
@@ -64,7 +68,7 @@ class TestMDSTrip:
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
 
-        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, trip_data=trip_data)
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
         query = mds_trip.generate_gql_insert()
         print("GQL: ")
         print(query)
@@ -74,7 +78,7 @@ class TestMDSTrip:
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
 
-        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, trip_data=trip_data)
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
         query = mds_trip.generate_gql_search("123456789")
         print("GQL: ")
         print(query)
@@ -87,7 +91,7 @@ class TestMDSTrip:
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
 
-        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, trip_data=trip_data)
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
         start_long, start_lat = mds_trip.get_coordinates(start=True)
 
         print(f"start_long: {start_long}")
@@ -97,7 +101,7 @@ class TestMDSTrip:
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
 
-        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, trip_data=trip_data)
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
         start_long, start_lat = mds_trip.get_coordinates(start=False)
 
         print(f"start_long: {start_long}")
@@ -107,7 +111,7 @@ class TestMDSTrip:
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
 
-        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, trip_data=trip_data)
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
         mds_trip.set_trip_value("council_district_start", "this_is_a_test")
         assert mds_trip.get_trip_value("council_district_start") == "this_is_a_test"
 
@@ -115,7 +119,7 @@ class TestMDSTrip:
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
 
-        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, trip_data=trip_data)
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
         mds_trip.set_trip_value("dest_cell_id", -97.023123123)
         assert mds_trip.get_trip_value("dest_cell_id") == -97.023123123
 
@@ -123,7 +127,7 @@ class TestMDSTrip:
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
 
-        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, trip_data=trip_data)
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
         mds_trip.set_trip_value("dest_cell_id", "test_value")
         assert mds_trip.get_trip_value("wrong_key") is None
 
@@ -131,11 +135,7 @@ class TestMDSTrip:
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
 
-        mds_trip = MDSTrip(
-            mds_config=mds_config,
-            mds_pip=mds_pip,
-            trip_data=trip_data
-        )
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
 
         success = (
             1 == 1
