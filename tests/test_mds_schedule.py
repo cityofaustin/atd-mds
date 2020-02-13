@@ -81,16 +81,14 @@ class TestMDSSchedule:
             offset=0,  # One hour
             time_zone="US/Central",  # US/Central
         )
-        self.mds_schedule = MDSSchedule(
+        mds_schedule = MDSSchedule(
             mds_config=mds_config,
             provider_name="jump",
             status_id=0,
             time_min=time_min.get_time_end(),
             time_max=time_max.get_time_end(),
         )
-        mds_shedule = self.mds_schedule
-
-        query = mds_shedule.get_query()
+        query = mds_schedule.get_query()
         print("Query: " + query)
         assert isinstance(gql(query), str)
 
@@ -102,13 +100,13 @@ class TestMDSSchedule:
             time_zone="US/Central",  # US/Central
         )
 
-        mds_shedule = MDSSchedule(
+        mds_schedule = MDSSchedule(
             mds_config=mds_config,
             provider_name="jump",
             time_max=time_max.get_time_end(),
         )
 
-        query = mds_shedule.get_query()
+        query = mds_schedule.get_query()
         print("Query: " + query)
         assert isinstance(gql(query), str)
 
@@ -125,14 +123,14 @@ class TestMDSSchedule:
             time_zone="US/Central",  # US/Central
         )
 
-        mds_shedule = MDSSchedule(
+        mds_schedule = MDSSchedule(
             mds_config=mds_config,
             provider_name="jump",
             time_min=time_min.get_time_end(),
             time_max=time_max.get_time_end(),
         )
 
-        query = mds_shedule.get_query()
+        query = mds_schedule.get_query()
         print("Query: " + query)
         assert isinstance(gql(query), str)
 
@@ -149,16 +147,16 @@ class TestMDSSchedule:
             time_zone="US/Central",  # US/Central
         )
 
-        mds_shedule = MDSSchedule(
+        mds_schedule = MDSSchedule(
             mds_config=mds_config,
             provider_name="jump",
             time_min=time_min.get_time_end(),
             time_max=time_max.get_time_end(),
         )
 
-        query = mds_shedule.get_query()
+        query = mds_schedule.get_query()
         print("Query: " + query)
-        schedule = mds_shedule.get_schedule()
+        schedule = mds_schedule.get_schedule()
         print("Schedule: " + json.dumps(schedule))
         success_a = isinstance(schedule, list)
         success_b = False if "errors" in schedule else True
@@ -166,13 +164,13 @@ class TestMDSSchedule:
 
     def test_get_schedule_fail_t1(self):
         try:
-            mds_shedule = MDSSchedule(
+            mds_schedule = MDSSchedule(
                 mds_config=mds_config,
                 provider_name="jump",
                 time_min=None,
                 time_max=None,
             )
-            mds_shedule.get_schedule()
+            mds_schedule.get_schedule()
             assert False
         except:
             assert True
