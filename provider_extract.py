@@ -9,6 +9,7 @@ from mds import *
 from MDSCli import MDSCli
 from MDSConfig import MDSConfig
 from MDSAWS import MDSAWS
+from MDSGraphQLRequest import MDSGraphQLRequest
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -22,6 +23,10 @@ mds_aws = MDSAWS(
     aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
     aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
     bucket_name=mds_config.ATD_MDS_BUCKET,
+)
+mds_gql = MDSGraphQLRequest(
+    endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
+    http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
 )
 
 
@@ -58,6 +63,7 @@ def run(**kwargs):
     """
     mds_cli = MDSCli(
         mds_config=mds_config,
+        mds_gql=mds_gql,
         provider=kwargs.get("provider", None),
         interval=kwargs.get("interval", None),
         time_max=kwargs.get("time_max", None),
