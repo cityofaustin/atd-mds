@@ -4,7 +4,6 @@ from datetime import datetime
 from string import Template
 
 from MDSConfig import MDSConfig
-from MDSGraphQLRequest import MDSGraphQLRequest
 
 
 class MDSSchedule:
@@ -18,10 +17,11 @@ class MDSSchedule:
         "time_max",
     ]
 
-    def __init__(self, mds_config, provider_name, status_id=0, time_max=None, time_min=None):
+    def __init__(self, mds_config, mds_gql, provider_name, status_id=0, time_max=None, time_min=None):
         """
         Constructor for Schedule class.
         :param MDSConfig mds_config: The configuration class where we can gather our endpoint
+        :param MDSGraphQLRequest mds_gql: The http graphql class we need to make requests
         :param str provider_name: The provider name as identified in the providers table in the RDS MDS instance.
         :param int status_id: The status id of the schedule we are looking for, default is 0
         :param datetime time_max: A datetime object that includes the maximum date and hour of the schedule
@@ -30,10 +30,7 @@ class MDSSchedule:
         logging.debug("MDSSchedule::__init__() Initializing MDSSchedule")
         # Initialization
         self.mds_config = mds_config
-        self.mds_http_graphql = MDSGraphQLRequest(
-            endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
-            http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
-        )
+        self.mds_http_graphql = mds_gql
         self.provider_name = provider_name
         self.status_id = status_id
         self.time_max = time_max
@@ -108,11 +105,4 @@ class MDSSchedule:
         Returns a dictionary with the response from the API endpoint
         :return dict:
         """
-        # Check if the mds_http_graphql variable is a valid MDSGraphQLRequest object
-        if not isinstance(self.mds_http_graphql, MDSGraphQLRequest):
-            raise Exception(
-                "MDSSchedule::get_schedule() http_graphql_request is not a MDSGraphQLRequest class"
-            )
-
-        # It looks like it is, let's make the request
         return self.mds_http_graphql.request(self.get_query())["data"]["api_schedule"]
