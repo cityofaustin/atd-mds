@@ -66,19 +66,13 @@ class MDSSchedule:
                             where: {
                                 provider: {provider_name: {_eq: "$provider_name"}},
                                 status_id: {_eq: $status_id},
-
-                                year: {_gte: $min_year},
-                                month: {_gte: $min_month},
-                                day: {_gte: $min_day},
-                                hour: {_gte: $min_hour},
-
+                                
+                                date:{_gt:"$min_year-$min_month-$min_day $min_hour:00:00"}
+                                
                                 _and: {
-                                    year: {_lte: $max_year},
-                                    month: {_lte: $max_month},
-                                    day: {_lte: $max_day},
-                                    hour: {_lte: $max_hour},
+                                    date:{_lte:"$max_year-$max_month-$max_day $max_hour:00:00"}
                                 }
-                            }
+                            }, order_by: {date: asc}
                         ) {
                             provider_id
                             schedule_id
@@ -95,11 +89,11 @@ class MDSSchedule:
                     "min_year": self.time_min.year,
                     "min_month": self.time_min.month,
                     "min_day": self.time_min.day,
-                    "min_hour": self.time_min.hour,
+                    "min_hour": f"{self.time_min.hour:02d}",
                     "max_year": self.time_max.year,
                     "max_month": self.time_max.month,
                     "max_day": self.time_max.day,
-                    "max_hour": self.time_max.hour,
+                    "max_hour": f"{self.time_max.hour:02d}",
                 })
 
     def get_query(self) -> str:
