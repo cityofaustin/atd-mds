@@ -70,9 +70,6 @@ class TestMDSTrip:
         print(query)
         assert isinstance(gql(query), str)
 
-    def test_save_fail_t1(self):
-        assert True
-
     def test_search_success_t1(self):
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
