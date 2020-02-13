@@ -2,9 +2,10 @@
 import json
 from string import Template
 
+from MDSPointInPolygon import MDSPointInPolygon
 from MDSGraphQLRequest import MDSGraphQLRequest
 from cerberus import Validator
-from shapely.geometry import shape, point
+
 
 class MDSTrip:
     __slots__ = [
@@ -14,11 +15,6 @@ class MDSTrip:
         "mds_graphql_query",
         "trip_data",
         "validator",
-        "point_start",
-        "point_end",
-        "poly_census_tract_id",
-        "poly_district_id",
-        "poly_hex_id",
     ]
 
     validation_schema = {
@@ -38,6 +34,12 @@ class MDSTrip:
         "standard_cost": {"type": "integer"},
         "actual_cost": {"type": "integer"},
         "publication_time": {"type": "integer"},
+        "council_district_start": {"type": "string"},
+        "council_district_end": {"type": "string"},
+        "orig_cell_id": {"type": "string"},
+        "dest_cell_id": {"type": "string"},
+        "census_geoid_start": {"type": "string"},
+        "census_geoid_end": {"type": "string"},
     }
 
     graphql_template_insert = """
@@ -103,21 +105,18 @@ class MDSTrip:
         self.validator = Validator(self.validation_schema, require_all=True)
         # Then initialize our trip data
         self.trip_data = trip_data
+        self.initialize_points()
         self.mds_graphql_query = None
-        # Shapely point attributes for the start and end coordinates
-        self.point_start = None
-        self.point_end = None
-        # Other trip attributes we need to figure out later with the above start/end points
-        self.poly_census_tract_id = None
-        self.poly_district_id = None
-        self.poly_hex_id = None
 
     def is_valid(self) -> bool:
         """
         Returns True if the trip data is valid, false otherwise.
         :return bool:
         """
-        return self.validator.validate(self.trip_data)
+        try:
+            return self.validator.validate(self.trip_data)
+        except:
+            return False
 
     def save(self) -> bool:
         """
@@ -170,39 +169,68 @@ class MDSTrip:
         coordinates = self.trip_data["route"]["features"][index]["geometry"]["coordinates"]
         return coordinates[0], coordinates[1]
 
-    def get_council_district(self) -> str:
+    def set_trip_value(self, trip_key, trip_value):
         """
-        Returns a string with the council district id.
-        :return str:
+        Sets a new key to the trip data dictionary
+        :param str trip_key: The new key to be added to the dict
+        :param str trip_value: The value assigned to that key
         """
-        if self.trip_data:
-            pass
-        return ""
+        self.trip_data[trip_key] = trip_value
 
-    def get_cell_id(self) -> str:
+    def get_trip_value(self, trip_key):
         """
-        Returns a string with the cell id.
-        :return str:
+        Returns a specific value for a key in the trip data dictionary
+        :param str trip_key: The name of the key in the trip data dictionary
+        :return:
         """
-        if self.trip_data:
-            pass
-        return ""
-
-    def get_census_geoid(self) -> str:
-        """
-        Returns a string with the census geoid.
-        :return str:
-        """
-        if self.trip_data:
-            pass
-        return ""
+        return self.trip_data.get(trip_key, None)
 
     def initialize_points(self):
         # If the Trips data is valid (has proper format), let's initialize the trip's shapely points
-        if self.is_valid():
-            # Initialize the start point
-            longitude, latitude = self.get_coordinates(start=True)
-            self.point_start = point.Point(float(latitude), float(longitude))
+        if isinstance(self.trip_data, dict) \
+                and isinstance(self.mds_pip, MDSPointInPolygon):
+            try:
+                # Get coordinates for start and end of trip
+                start_long, start_lat = self.get_coordinates(start=True)
+                end_long, end_lat = self.get_coordinates(start=False)
 
-            longitude, latitude = self.get_coordinates(start=False)
-            self.point_end = point.Point(float(latitude), float(longitude))
+                # Convert each to shapely point objects
+                start_point = self.mds_pip.create_point(
+                    longitude_x=start_long,
+                    latitude_y=start_lat
+                )
+                end_point = self.mds_pip.create_point(
+                    longitude_x=end_long,
+                    latitude_y=end_lat
+                )
+                # Retrieve the Census Tract
+                self.set_trip_value(
+                    "census_geoid_start",
+                    self.mds_pip.get_census_tract_id(mds_point=start_point)
+                )
+                self.set_trip_value(
+                    "census_geoid_end",
+                    self.mds_pip.get_census_tract_id(mds_point=end_point)
+                )
+
+                # Retrieve the council district
+                self.set_trip_value(
+                    "council_district_start",
+                    self.mds_pip.get_district_id(mds_point=start_point)
+                )
+                self.set_trip_value(
+                    "council_district_end",
+                    self.mds_pip.get_district_id(mds_point=end_point)
+                )
+
+                # Retrieve the Hexagon ID
+                self.set_trip_value(
+                    "orig_cell_id",
+                    self.mds_pip.get_hex_id(mds_point=start_point)
+                )
+                self.set_trip_value(
+                    "dest_cell_id",
+                    self.mds_pip.get_hex_id(mds_point=end_point)
+                )
+            except:
+                pass
