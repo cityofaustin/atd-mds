@@ -89,8 +89,6 @@ def run(**kwargs):
         config=mds_cli.mds_provider, provider=mds_cli.provider
     )
 
-    all_trips = []
-
     # For each schedule item:
     for schedule_item in schedule:
         logging.debug("Running with: ")
@@ -129,12 +127,14 @@ def run(**kwargs):
         logging.debug("Saving Data to S3 ...")
         mds_aws.save(json_document=json.dumps(trips), file_path=s3_trips_file)
         logging.debug(f"File saved to {s3_trips_file}")
-        # Accumulate
-        all_trips += trips
 
-    if file:
-        with open(f"{file}", "w") as json_file:
-            json.dump(all_trips, json_file)
+        if file:
+            file_name = mds_config.get_file_name(
+                file_name=file,
+                date=tz_time.get_time_start()
+            )
+            with open(f"{file_name}", "w") as json_file:
+                json.dump(trips, json_file)
 
     # Gather timer end & output to console...
     hours, minutes, seconds = mds_cli.get_timer_end()
