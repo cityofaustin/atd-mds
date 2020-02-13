@@ -127,6 +127,16 @@ class MDSConfig:
         date_time_format = f"{date.year}/{date.month}/{date.day}/{date.hour}/"
         return f"{root_path}/{date_time_format}"
 
+    @staticmethod
+    def get_file_name(file_name, date) -> str:
+        """
+        Returns the data path for a provider for a specific date.
+        :param str file_name: The name of the file to be saved
+        :param datetime date: A datetime object
+        :return str:
+        """
+        return f"{date.year}-{date.month}-{date.day}-{date.hour}-{file_name}"
+
     def get_setting(self, setting, default) -> str:
         """
         Returns the MDS setting by name from the loaded configuration.
