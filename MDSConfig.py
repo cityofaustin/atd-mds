@@ -79,6 +79,16 @@ class MDSConfig:
             aws_secret_access_key=self.ATD_MDS_SECRET_ACCESS_KEY,
         )
 
+    @staticmethod
+    def read_json(file_path):
+        """
+        Load JSON into a dictionary object
+        :param str file_path:
+        :return dict:
+        """
+        with open(file_path, "r") as fin:
+            return json.loads(fin.read())
+
     def _load_json_file_s3(self, key) -> dict:
         """
         Downloads a file from S3 based on bucket and key parameters. It requires credentials.
