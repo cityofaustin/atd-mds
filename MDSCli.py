@@ -8,6 +8,7 @@ from MDSProviderHelpers import MDSProviderHelpers
 from MDSSchedule import MDSSchedule
 from mds import MDSTimeZone
 
+
 class MDSCli:
     __slots__ = [
         "mds_config",
@@ -45,8 +46,12 @@ class MDSCli:
         self.time_max = time_max
         self.time_min = time_min
         # Parse date times
-        self.parsed_date_time_max = self.helpers.parse_custom_datetime_as_dt(self.time_max)
-        self.parsed_date_time_min = self.helpers.parse_custom_datetime_as_dt(self.time_min)
+        self.parsed_date_time_max = self.helpers.parse_custom_datetime_as_dt(
+            self.time_max
+        )
+        self.parsed_date_time_min = self.helpers.parse_custom_datetime_as_dt(
+            self.time_min
+        )
         self.parsed_interval = self.helpers.parse_interval(self.interval)
         # Initialize mds_provider
         self.mds_provider = self.mds_config.get_provider_config(
@@ -89,14 +94,18 @@ class MDSCli:
         if self.interval:
             logging.debug(f"MDSCli::validate_settings() interval: {self.interval}")
         else:
-            logging.debug("MDSCli::validate_settings() Interval not defined, assuming 1 hour.")
+            logging.debug(
+                "MDSCli::validate_settings() Interval not defined, assuming 1 hour."
+            )
             self.interval = 1
 
         if self.time_min:
             logging.debug(f"MDSCli::validate_settings() time_min: {self.time_max}")
             self.interval = 0
         else:
-            logging.debug("MDSCli::validate_settings() Not a range, running for a single cycle")
+            logging.debug(
+                "MDSCli::validate_settings() Not a range, running for a single cycle"
+            )
 
         if not self.parsed_date_time_max:
             logging.debug(f"The time-max date provided is not valid: '{self.time_max}'")
@@ -110,20 +119,39 @@ class MDSCli:
 
         return True
 
+    def get_final_offset(self) -> int:
+        """
+        Returns offset minus one, or zero if the offset is negative.
+        """
+        return self.parsed_interval if self.parsed_interval > 0 else 0
+
     def initialize_schedule(self) -> MDSSchedule:
         # If we do not have a time-min, then we use the interval
         if not self.parsed_date_time_min:
-            logging.debug(f"No time-min defined, using Interval: {self.parsed_interval}")
+            logging.debug(
+                f"No time-min defined, using Interval: {self.parsed_interval}"
+            )
+            final_offset = (self.get_final_offset() * 60 * 60)
+            print(
+                "self.parsed_interval: %s, final_offset: %s"
+                % (self.parsed_interval, final_offset)
+            )
             time_max = MDSTimeZone(
                 date_time_now=self.parsed_date_time_max,
-                offset=(self.parsed_interval * 60 * 60),
+                offset=final_offset,
                 time_zone="US/Central",  # US/Central
+            )
+            tms = time_max.get_time_start()
+            tme = time_max.get_time_end()
+            print(
+                "time_max.get_time_start: %s, time_max.get_time_end: %s"
+                % (time_max.get_time_start(), time_max.get_time_end())
             )
             self.mds_schedule = MDSSchedule(
                 mds_config=self.mds_config,
                 provider_name=str(self.provider),
-                time_min=time_max.get_time_end(),
-                time_max=time_max.get_time_end()
+                time_min=time_max.get_time_start(),
+                time_max=time_max.get_time_end(),
             )
         else:
             logging.debug(f"Time-min is defined, interval cleared.")
@@ -143,7 +171,7 @@ class MDSCli:
                 mds_config=self.mds_config,
                 provider_name=str(self.provider),
                 time_min=time_min.get_time_start(),
-                time_max=time_max.get_time_end()
+                time_max=time_max.get_time_end(),
             )
 
         return self.mds_schedule
