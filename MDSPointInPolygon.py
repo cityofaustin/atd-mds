@@ -19,16 +19,6 @@ class MDSPointInPolygon:
     ]
 
     @staticmethod
-    def read_json(file_path) -> dict:
-        """
-        Load (geo)JSON into memory
-        :param str file_path:
-        :return dict:
-        """
-        with open(file_path, "r") as fin:
-            return json.loads(fin.read())
-
-    @staticmethod
     def get_polygon_property(poly, label) -> str:
         """
         Returns a string property from a geojson polygon.
@@ -106,13 +96,13 @@ class MDSPointInPolygon:
         Initializes the geojson polygons from json files.
         :return:
         """
-        self.CENSUS_TRACTS_GEOJSON = self.read_json(
+        self.CENSUS_TRACTS_GEOJSON = self.mds_config.read_json(
             file_path=self.mds_config.ATD_MDS_CENSUS_GEOJSON
         )
-        self.DISTRICTS_GEOJSON = self.read_json(
+        self.DISTRICTS_GEOJSON = self.mds_config.read_json(
             file_path=self.mds_config.ATD_MDS_DISTRICTS_GEOJSON
         )
-        self.HEX_GEOJSON = self.read_json(
+        self.HEX_GEOJSON = self.mds_config.read_json(
             file_path=self.mds_config.ATD_MDS_HEX_GEOJSON
         )
 
