@@ -19,16 +19,20 @@ logging.basicConfig(
 logger = logging.getLogger()
 logger.disabled = False
 
+# Let's initialize our configuration class
 mds_config = MDSConfig()
+# Then we need to initialize our AWS class with our configuration
 mds_aws = MDSAWS(
     aws_default_region=mds_config.ATD_MDS_REGION,
     aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
     aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
     bucket_name=mds_config.ATD_MDS_BUCKET,
 )
+# We will need the point-in-polygon class for our trips
 mds_pip = MDSPointInPolygon(
     mds_config=mds_config
 )
+# Both the CLI and Trips classes will need an http-graphql client
 mds_gql = MDSGraphQLRequest(
     endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
     http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)

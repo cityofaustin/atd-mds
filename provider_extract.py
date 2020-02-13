@@ -17,13 +17,16 @@ logging.basicConfig(
 logger = logging.getLogger()
 logger.disabled = False
 
+# Let's initialize our configuration class
 mds_config = MDSConfig()
+# Then we need to initialize our AWS class with our configuration
 mds_aws = MDSAWS(
     aws_default_region=mds_config.ATD_MDS_REGION,
     aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
     aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
     bucket_name=mds_config.ATD_MDS_BUCKET,
 )
+# The CLI class will need an http-graphql client
 mds_gql = MDSGraphQLRequest(
     endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
     http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
@@ -92,9 +95,13 @@ def run(**kwargs):
     logging.debug("Initializing MDS Client ...")
     # Initialize the MDS Client
     mds_client = MDSClient(
-        config=mds_cli.mds_provider, provider=mds_cli.provider
+        config=mds_cli.mds_provider,
+        mds_gql=mds_gql,
+        provider=mds_cli.provider
     )
 
+    # We will need to accumulate all trips if we have more
+    # than one hour blocks that need to be saved to a json file.
     all_trips = []
 
     # For each schedule item:
@@ -136,10 +143,15 @@ def run(**kwargs):
         mds_aws.save(json_document=json.dumps(trips), file_path=s3_trips_file)
         logging.debug(f"File saved to {s3_trips_file}")
 
-        all_trips.append(trips)
-        trips = None
+        # If we need to save to file
+        if file:
+            # Accumulate to our current trips array
+            all_trips.append(trips)
+        trips = None  # Wipe out trips just in case
 
+    # If we need to save to file
     if file:
+        # Open the file and dump all trips accumulated
         with open(f"{file}", "w") as json_file:
             json.dump(all_trips, json_file)
 
