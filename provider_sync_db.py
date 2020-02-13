@@ -6,9 +6,12 @@ import logging
 from datetime import datetime
 
 from mds import *
+from MDSTrip import MDSTrip
 from MDSCli import MDSCli
 from MDSConfig import MDSConfig
 from MDSAWS import MDSAWS
+from MDSPointInPolygon import MDSPointInPolygon
+from MDSGraphQLRequest import MDSGraphQLRequest
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -22,6 +25,13 @@ mds_aws = MDSAWS(
     aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
     aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
     bucket_name=mds_config.ATD_MDS_BUCKET,
+)
+mds_pip = MDSPointInPolygon(
+    mds_config=mds_config
+)
+mds_gql = MDSGraphQLRequest(
+    endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
+    http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
 )
 
 
@@ -83,7 +93,46 @@ def run(**kwargs):
     schedule = mds_schedule.get_schedule()
     logging.debug(f"Schedule: {json.dumps(schedule)}")
 
-    print(f"File: {file}")
+    for schedule_item in schedule:
+        logging.debug("Running with: ")
+        logging.debug(schedule_item)
+
+        # Build timezone aware interval...
+        logging.debug("Building timezone aware interval ...")
+        tz_time = MDSTimeZone(
+            date_time_now=datetime(
+                schedule_item["year"],
+                schedule_item["month"],
+                schedule_item["day"],
+                schedule_item["hour"],
+            ),
+            offset=3600,  # One hour, always
+            time_zone="US/Central",  # US/Central Timezone
+        )
+
+        # Output generated time stamps on screen
+        logging.debug("Time Start (iso):\t%s" % tz_time.get_time_start())
+        logging.debug("Time End   (iso):\t%s" % tz_time.get_time_end())
+        logging.debug("time_start (unix):\t%s" % (tz_time.get_time_start(utc=True, unix=True)))
+        logging.debug("time_end   (unix):\t%s" % (tz_time.get_time_end(utc=True, unix=True)))
+
+        logging.debug("Loading S3 File ...")
+        # Determine data directory in S3
+        data_path = mds_config.get_data_path(
+            provider_name=mds_cli.provider, date=tz_time.get_time_start()
+        )
+        # Determine final file path
+        s3_trips_file = data_path + "trips.json"
+
+        trips = mds_aws.load(s3_trips_file)
+        for trip in trips["data"]["trips"]:
+            mds_trip = MDSTrip(
+                mds_config=mds_config,
+                mds_pip=mds_pip,
+                trip_data=trip
+            )
+            gql = mds_trip.generate_gql_insert()
+            print(gql)
 
 
 if __name__ == "__main__":
