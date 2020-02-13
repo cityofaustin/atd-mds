@@ -1,4 +1,4 @@
-
+import logging
 import json
 from string import Template
 
@@ -149,11 +149,14 @@ class MDSTrip:
         Returns True if the record has been saved to Postgres successfully, false otherwise.
         :return bool:
         """
+        logging.debug("MDSTrip::save() saving trip...")
         if self.is_valid():
             query = self.generate_gql_insert()
             response = self.mds_http_graphql.request(query)
+            logging.debug("MDSTrip::save() Request finished, response: %s" % str(response))
             return True
         else:
+            logging.debug("MDSTrip::save() trip marked as invalid...")
             return False
 
     def exists(self) -> bool:
