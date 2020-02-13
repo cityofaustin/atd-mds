@@ -71,7 +71,7 @@ class TestMDSCli:
         except:
             assert True
 
-    def test_initialize_schedule_success(self):
+    def test_initialize_schedule_one_hour_success(self):
         mds_cli = MDSCli(
             mds_config=mds_config,
             provider="jump",
@@ -81,5 +81,58 @@ class TestMDSCli:
         )
 
         s = mds_cli.initialize_schedule()
+        sc = s.get_schedule()
+        assert isinstance(s, MDSSchedule) and len(sc) == 1
 
-        assert isinstance(s, MDSSchedule)
+    def test_initialize_schedule_two_hour_success(self):
+        mds_cli = MDSCli(
+            mds_config=mds_config,
+            provider="jump",
+            interval=2,
+            time_max="2020-1-11-17",
+            time_min=None
+        )
+
+        s = mds_cli.initialize_schedule()
+        sc = s.get_schedule()
+        assert isinstance(s, MDSSchedule) and len(sc) == 2
+
+    def test_initialize_schedule_midnight_1hr_int_success(self):
+        mds_cli = MDSCli(
+            mds_config=mds_config,
+            provider="jump",
+            interval=1,
+            time_max="2020-1-11-0",
+            time_min=None
+        )
+
+        s = mds_cli.initialize_schedule()
+        sc = s.get_schedule()
+        assert isinstance(s, MDSSchedule) and len(sc) == 1
+
+    def test_initialize_schedule_midnight_23hr_int_success(self):
+        mds_cli = MDSCli(
+            mds_config=mds_config,
+            provider="jump",
+            interval=23,
+            time_max="2020-1-11-0",
+            time_min=None
+        )
+
+        s = mds_cli.initialize_schedule()
+        sc = s.get_schedule()
+        q = s.get_query()
+        assert isinstance(s, MDSSchedule) and len(sc) == 23
+
+    def test_initialize_schedule_24_hours_success_t2(self):
+        mds_cli = MDSCli(
+            mds_config=mds_config,
+            provider="jump",
+            interval=0,
+            time_min="2020-1-10-0",
+            time_max="2020-1-11-0",
+        )
+
+        s = mds_cli.initialize_schedule()
+        sc = s.get_schedule()
+        assert isinstance(s, MDSSchedule) and len(sc) == 24
