@@ -14,6 +14,7 @@ class MDSCli:
         "mds_config",
         "mds_schedule",
         "mds_provider",
+        "mds_http_graphql",
         "provider",
         "interval",
         "time_max",
@@ -27,7 +28,7 @@ class MDSCli:
         "parsed_interval",
     ]
 
-    def __init__(self, mds_config, provider, interval, time_max, time_min):
+    def __init__(self, mds_config, mds_gql, provider, interval, time_max, time_min):
         """
         Initializes the option parser
         """
@@ -35,6 +36,8 @@ class MDSCli:
         self.mds_config = mds_config
         # Initial Schedule
         self.mds_schedule = None
+        # Initialize HTTP GraphQL Client
+        self.mds_http_graphql = mds_gql
         # Initialize helpers
         self.helpers = MDSProviderHelpers()
         # Initialize the timer values
@@ -149,6 +152,7 @@ class MDSCli:
             )
             self.mds_schedule = MDSSchedule(
                 mds_config=self.mds_config,
+                mds_gql=self.mds_http_graphql,
                 provider_name=str(self.provider),
                 time_min=time_max.get_time_start(),
                 time_max=time_max.get_time_end(),
@@ -169,6 +173,7 @@ class MDSCli:
 
             self.mds_schedule = MDSSchedule(
                 mds_config=self.mds_config,
+                mds_gql=self.mds_http_graphql,
                 provider_name=str(self.provider),
                 time_min=time_min.get_time_start(),
                 time_max=time_max.get_time_end(),
