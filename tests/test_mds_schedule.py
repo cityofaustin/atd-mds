@@ -15,6 +15,10 @@ from MDSSchedule import MDSSchedule
 
 # Assumes MDSConfig and MDSGraphQLRequest work as expected
 mds_config = MDSConfig()
+mds_gql = MDSGraphQLRequest(
+    endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
+    http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
+)
 
 
 class TestMDSSchedule:
@@ -83,6 +87,7 @@ class TestMDSSchedule:
         )
         mds_schedule = MDSSchedule(
             mds_config=mds_config,
+            mds_gql=mds_gql,
             provider_name="jump",
             status_id=0,
             time_min=time_min.get_time_end(),
@@ -102,6 +107,7 @@ class TestMDSSchedule:
 
         mds_schedule = MDSSchedule(
             mds_config=mds_config,
+            mds_gql=mds_gql,
             provider_name="jump",
             time_max=time_max.get_time_end(),
         )
@@ -125,6 +131,7 @@ class TestMDSSchedule:
 
         mds_schedule = MDSSchedule(
             mds_config=mds_config,
+            mds_gql=mds_gql,
             provider_name="jump",
             time_min=time_min.get_time_end(),
             time_max=time_max.get_time_end(),
@@ -149,6 +156,7 @@ class TestMDSSchedule:
 
         mds_schedule = MDSSchedule(
             mds_config=mds_config,
+            mds_gql=mds_gql,
             provider_name="jump",
             time_min=time_min.get_time_end(),
             time_max=time_max.get_time_end(),
@@ -166,6 +174,7 @@ class TestMDSSchedule:
         try:
             mds_schedule = MDSSchedule(
                 mds_config=mds_config,
+                mds_gql=mds_gql,
                 provider_name="jump",
                 time_min=None,
                 time_max=None,
