@@ -68,6 +68,7 @@ def run(**kwargs):
     """
     mds_cli = MDSCli(
         mds_config=mds_config,
+        mds_gql=mds_gql,
         provider=kwargs.get("provider", None),
         interval=kwargs.get("interval", None),
         time_max=kwargs.get("time_max", None),
@@ -93,6 +94,7 @@ def run(**kwargs):
     schedule = mds_schedule.get_schedule()
     logging.debug(f"Schedule: {json.dumps(schedule)}")
 
+    # For each schedule hour block:
     for schedule_item in schedule:
         logging.debug("Running with: ")
         logging.debug(schedule_item)
@@ -123,16 +125,23 @@ def run(**kwargs):
         )
         # Determine final file path
         s3_trips_file = data_path + "trips.json"
-
+        # Load the file from S3 into a dictionary called 'trips'
         trips = mds_aws.load(s3_trips_file)
+        # For each trip, we need to build a trip object
         for trip in trips["data"]["trips"]:
             mds_trip = MDSTrip(
-                mds_config=mds_config,
-                mds_pip=mds_pip,
-                trip_data=trip
+                mds_config=mds_config,  # We pass the configuration class
+                mds_pip=mds_pip,  # We pass the point-in-polygon class
+                mds_gql=mds_gql,  # We pass the HTTP GraphQL class
+                trip_data=trip  # We provide this individual trip data
             )
+            # We can generate a GraphQL Query for debugging
             gql = mds_trip.generate_gql_insert()
-            print(gql)
+            # If the trip is validated
+            if mds_trip.is_valid():
+                # We now 'save' the trip to in the database
+                print(gql)
+                # mds_trip.save()
 
 
 if __name__ == "__main__":
