@@ -8,9 +8,13 @@ from parent_directory import *
 from MDSConfig import MDSConfig
 from MDSCli import MDSCli
 from MDSSchedule import MDSSchedule
+from MDSGraphQLRequest import MDSGraphQLRequest
 
 mds_config = MDSConfig()
-
+mds_gql = MDSGraphQLRequest(
+    endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
+    http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
+)
 
 class TestMDSCli:
     @classmethod
@@ -24,6 +28,7 @@ class TestMDSCli:
     def test_constructor_success_t1(self):
         mds_cli = MDSCli(
             mds_config=mds_config,
+            mds_gql=mds_gql,
             provider="jump",
             interval=1,
             time_max="2020-1-11-17",
@@ -36,6 +41,7 @@ class TestMDSCli:
         try:
             mds_cli = MDSCli(
                 mds_config=mds_config,
+                mds_gql=mds_gql,
                 provider="not-a-valid-provider",
                 interval=1,
                 time_max="2020-1-11-17",
@@ -49,6 +55,7 @@ class TestMDSCli:
         try:
             mds_cli = MDSCli(
                 mds_config=mds_config,
+                mds_gql=mds_gql,
                 provider="lime",
                 interval=1,
                 time_max="not-a-valid-time-parameter",
@@ -62,6 +69,7 @@ class TestMDSCli:
         try:
             mds_cli = MDSCli(
                 mds_config=mds_config,
+                mds_gql=mds_gql,
                 provider=None,
                 interval=1,
                 time_max=None,
@@ -74,6 +82,7 @@ class TestMDSCli:
     def test_initialize_schedule_one_hour_success(self):
         mds_cli = MDSCli(
             mds_config=mds_config,
+            mds_gql=mds_gql,
             provider="jump",
             interval=1,
             time_max="2020-1-11-17",
@@ -87,6 +96,7 @@ class TestMDSCli:
     def test_initialize_schedule_two_hour_success(self):
         mds_cli = MDSCli(
             mds_config=mds_config,
+            mds_gql=mds_gql,
             provider="jump",
             interval=2,
             time_max="2020-1-11-17",
@@ -100,6 +110,7 @@ class TestMDSCli:
     def test_initialize_schedule_midnight_1hr_int_success(self):
         mds_cli = MDSCli(
             mds_config=mds_config,
+            mds_gql=mds_gql,
             provider="jump",
             interval=1,
             time_max="2020-1-11-0",
@@ -113,6 +124,7 @@ class TestMDSCli:
     def test_initialize_schedule_midnight_23hr_int_success(self):
         mds_cli = MDSCli(
             mds_config=mds_config,
+            mds_gql=mds_gql,
             provider="jump",
             interval=23,
             time_max="2020-1-11-0",
@@ -127,6 +139,7 @@ class TestMDSCli:
     def test_initialize_schedule_24_hours_success_t2(self):
         mds_cli = MDSCli(
             mds_config=mds_config,
+            mds_gql=mds_gql,
             provider="jump",
             interval=0,
             time_min="2020-1-10-0",
