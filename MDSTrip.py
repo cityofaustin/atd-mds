@@ -34,6 +34,12 @@ class MDSTrip:
         "standard_cost": {"type": "integer"},
         "actual_cost": {"type": "integer"},
         "publication_time": {"type": "integer"},
+        # Coordinates
+        "start_latitude": {"type": "float"},
+        "start_longitude": {"type": "float"},
+        "end_latitude": {"type": "float"},
+        "end_longitude": {"type": "float"},
+        # Polygon IDs
         "council_district_start": {"type": "string"},
         "council_district_end": {"type": "string"},
         "orig_cell_id": {"type": "string"},
@@ -61,6 +67,16 @@ class MDSTrip:
                 publication_time: "$publication_time",
                 standard_cost: $standard_cost,
                 actual_cost: $actual_cost,
+                start_latitude: $start_latitude,
+                start_longitude: $start_longitude,
+                end_latitude: $end_latitude,
+                end_longitude: $end_longitude,
+                council_district_start: "$council_district_start",
+                council_district_end: "$council_district_end",
+                orig_cell_id: "$orig_cell_id",
+                dest_cell_id: "$dest_cell_id",
+                census_geoid_start: "$census_geoid_start",
+                census_geoid_end: "$census_geoid_end",
             },
             on_conflict: {
                 constraint: new_constraint_name,
@@ -75,7 +91,17 @@ class MDSTrip:
                     trip_duration,
                     trip_distance,
                     start_time,
-                    end_time
+                    end_time,
+                    council_district_start,
+                    council_district_end,
+                    orig_cell_id,
+                    dest_cell_id,
+                    census_geoid_start,
+                    census_geoid_end,
+                    start_latitude,
+                    start_longitude,
+                    end_latitude,
+                    end_longitude,
                 ],
             }
         ) {
@@ -193,6 +219,10 @@ class MDSTrip:
                 # Get coordinates for start and end of trip
                 start_long, start_lat = self.get_coordinates(start=True)
                 end_long, end_lat = self.get_coordinates(start=False)
+                self.set_trip_value("start_latitude", start_lat)
+                self.set_trip_value("start_longitude", start_long)
+                self.set_trip_value("end_latitude", end_lat)
+                self.set_trip_value("end_longitude", end_long)
 
                 # Convert each to shapely point objects
                 start_point = self.mds_pip.create_point(
