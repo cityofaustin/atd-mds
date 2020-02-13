@@ -3,7 +3,6 @@ import json
 from string import Template
 
 from MDSPointInPolygon import MDSPointInPolygon
-from MDSGraphQLRequest import MDSGraphQLRequest
 from cerberus import Validator
 
 
@@ -118,15 +117,12 @@ class MDSTrip:
         }
     """
 
-    def __init__(self, mds_config, mds_pip, trip_data):
+    def __init__(self, mds_config, mds_pip, mds_gql, trip_data):
         # Initialize our configuration
         self.mds_config = mds_config
         self.mds_pip = mds_pip
         # Initialize our HTTP GraphQL Class
-        self.mds_http_graphql = MDSGraphQLRequest(
-            endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
-            http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
-        )
+        self.mds_http_graphql = mds_gql
         # Initializes the cerberus validator
         self.validator = Validator(self.validation_schema, require_all=True)
         # Then initialize our trip data
