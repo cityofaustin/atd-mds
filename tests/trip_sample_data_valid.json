@@ -1,0 +1,50 @@
+{
+  "provider_id": "0309585e-599f-4e57-ac85-0d31fcbfcb14",
+  "provider_name": "provider_name_mockup_data",
+  "device_id": "da9e067b-7b40-4d2d-8053-bcdf1fc97683",
+  "vehicle_id": "VID120SF",
+  "vehicle_type": "scooter",
+  "propulsion_type": [
+    "electric"
+  ],
+  "trip_id": "b3ca5c86-7f45-4544-bf58-a1107465c70e",
+  "trip_duration": 957,
+  "trip_distance": 1879,
+  "route": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "timestamp": 1581433705000
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -97.738363,
+            30.2667
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "timestamp": 1581433705000
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -97.738561,
+            30.25
+          ]
+        }
+      }
+    ]
+  },
+  "accuracy": 0,
+  "start_time": 1581433705000,
+  "end_time": 1581433705000,
+  "standard_cost": 330,
+  "actual_cost": 330,
+  "publication_time": 1581433705000
+}

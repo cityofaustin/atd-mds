@@ -6,7 +6,7 @@ mds
 venv
 .vscode/
 .idea/
-
+tests/
 
 # Files
 secrets.py

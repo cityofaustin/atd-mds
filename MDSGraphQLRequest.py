@@ -1,40 +1,58 @@
-#
-#
-#
-
-from string import Template
-
+import requests
+import logging
 
 class MDSGraphQLRequest:
+    __slots__ = ["endpoint", "http_params", "http_auth_token", "data", "response"]
 
-    model = {
-        "query_name": None,
-        "query_type": None,
-        "query_arguments": None,
-        "table_name": None,
-        "table_fields": {},
-        "table_values": {}
-    }
+    def __init__(self, endpoint, http_auth_token, **kwargs):
+        logging.debug("MDSGraphQLRequest::__init__() Initializing HTTP GraphQL Request")
+        self.endpoint = endpoint
+        self.http_auth_token = http_auth_token
+        self.http_params = kwargs.get("http_params", None)
+        self.response = None
 
-    def get_model(self):
-        return self.model
-
-    def set_model_value(self, model_property, value):
-        self.model[model_property] = value
-
-    def get_model_value(self, model_property, default_value):
-        return self.model.get(model_property, default_value)
-
-    def generate_query(self):
-
-        template = Template("""
-        $query_type $query_name $query_arguments {
-            $table_name {
-                $table_values
-            }
+    def get_config(self) -> dict:
+        """
+        Returns a dictionary with the loaded settings for this class.
+        :return dict:
+        """
+        logging.debug("MDSGraphQLRequest::get_config() getting config")
+        return {
+            "endpoint": self.endpoint,
+            "http_params": self.http_params,
+            "http_auth_token": self.http_auth_token
         }
-        """)
 
-        return template.substitute(query_type=self.get_model_value("query_type", "query"))
+    def request(self, query) -> dict:
+        """
+        Makes a GraphQL HTTP request to an endpoint, returns a dictionary with the response.
+        :param str query: The GraphQL query
+        :return dict:
+        """
+        logging.debug("MDSGraphQLRequest::request() Making request")
+        headers = {
+            "Accept": "*/*",
+            "content-type": "application/json",
+            "x-hasura-admin-secret": f"{self.http_auth_token}"
+        }
 
+        logging.debug(f"MDSGraphQLRequest::request() Headers: {str(headers)}")
 
+        self.response = requests.post(
+            self.endpoint,
+            params=self.http_params,
+            headers=headers,
+            json={
+                "query": query
+            }
+        )
+
+        self.response.encoding = "utf-8"
+        return self.response.json()
+
+    def get_last_response(self) -> dict:
+        """
+        Returns the last response from the endpoint.
+        :return dict:
+        """
+        return self.response.json()
