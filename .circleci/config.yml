@@ -15,6 +15,7 @@ jobs:
       - run:
           name: "Run Unit Tests"
           command: |
+            apt-get install libspatialindex-dev
             pip install -r requirements.txt
             pytest -v
       - run:
