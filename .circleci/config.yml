@@ -21,7 +21,6 @@ jobs:
       - run:
           name: "Building Docker Container"
           command: |
-            sudo apt-get install libspatialindex-dev
             source .circleci/docker-helper.sh
             build_container
 workflows:
