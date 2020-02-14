@@ -7,6 +7,8 @@ venv
 .vscode/
 .idea/
 tests/
+.pytest_cache/
+
 
 # Files
 secrets.py
