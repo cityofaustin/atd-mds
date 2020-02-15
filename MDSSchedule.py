@@ -107,6 +107,42 @@ class MDSSchedule:
     def escape_quotes(value):
         return str(value).replace("\"", "\\\"")
 
+    def get_schedule_update_status_query(self, schedule_id, status_id, **kwargs) -> str:
+        """
+        Generates the graphql query to run against the api.
+        :param int schedule_id: The schedule id to be updated
+        :param int status_id:  The status_id to be set to.
+        :param dict kwargs:  Any additional arguments to be set to.
+        :return:
+        """
+
+        additional_args = ""
+        for k, v in kwargs.items():
+            if self.is_quotable_value(v):
+                value = self.escape_quotes(v)
+                value = f"\"{value}\""
+            else:
+                value = v
+            additional_args += f"\n                    {k}: {value},"
+
+        return Template("""
+            mutation mutationUpdateScheduleStatus {
+                update_api_schedule(
+                where: {
+                    schedule_id: {_eq: $schedule_id}
+                }, 
+                _set: {
+                    status_id: $status_id,
+                    $additional_args
+                }
+                ){ affected_rows }
+            }
+        """).substitute({
+            "schedule_id": str(schedule_id),
+            "status_id": str(status_id),
+            "additional_args": additional_args,
+        })
+
     def get_query(self) -> str:
         """
         Retrieves the query from memory
