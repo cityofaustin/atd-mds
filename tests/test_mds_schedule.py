@@ -223,3 +223,13 @@ class TestMDSSchedule:
         )
         print("Update Mutation Query: " + query)
         assert isinstance(gql(query), str)
+
+    def test_update_status_query_addtl_args_success_t1(self):
+        query = mds_schedule_tester.get_schedule_update_status_query(
+            schedule_id=-1,
+            status_id=-1,
+            payload="https://bucket.s3.aws.com/payload.json",
+            message="{\"message\":\"Success\"}"
+        )
+        print("Update Mutation Query: " + query)
+        assert isinstance(gql(query), str)
