@@ -183,3 +183,34 @@ class MDSSchedule:
         :return dict:
         """
         return self.mds_http_graphql.request(self.get_query())["data"]["api_schedule"]
+
+    def get_schedule_by_id(self, schedule_id) -> dict:
+        """
+        Returns a dictionary with the response from the API endpoint
+        :return dict:
+        """
+        query = Template("""
+            query getScheduleById {
+              api_schedule(
+                where: {
+                    schedule_id: {_eq: $schedule_id}
+                }) {
+                    schedule_id
+                    status_id
+                    year
+                    month
+                    day
+                    hour
+                    payload
+                    message
+                    provider {
+                      id
+                      provider_name
+                    }
+                }
+            }
+        """).substitute({
+            "schedule_id": str(schedule_id)
+        })
+        print(query)
+        return self.mds_http_graphql.request(query)["data"]["api_schedule"]
