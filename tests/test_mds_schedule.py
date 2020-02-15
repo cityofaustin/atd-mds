@@ -215,3 +215,11 @@ class TestMDSSchedule:
 
     def test_quotable_value_success_t6(self):
         assert mds_schedule_tester.is_quotable_value("This is a sample string")
+
+    def test_update_status_query_success_t1(self):
+        query = mds_schedule_tester.get_schedule_update_status_query(
+            schedule_id=-1,
+            status_id=-1
+        )
+        print("Update Mutation Query: " + query)
+        assert isinstance(gql(query), str)
