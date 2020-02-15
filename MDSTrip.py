@@ -1,5 +1,6 @@
 import logging
 import json
+from datetime import datetime
 from string import Template
 
 from MDSPointInPolygon import MDSPointInPolygon
@@ -63,7 +64,7 @@ class MDSTrip:
                 trip_distance: "$trip_distance",
                 trip_duration: "$trip_duration",
                 vehicle_type: "$vehicle_type",
-                publication_time: "$publication_time",
+                publication_time: $publication_time,
                 standard_cost: $standard_cost,
                 actual_cost: $actual_cost,
                 start_latitude: $start_latitude,
@@ -78,7 +79,7 @@ class MDSTrip:
                 census_geoid_end: "$census_geoid_end",
             },
             on_conflict: {
-                constraint: new_constraint_name,
+                constraint: trips_trip_id_pk,
                 update_columns: [
                     provider_id,
                     provider_name,
@@ -170,6 +171,7 @@ class MDSTrip:
         Generates a string with a GraphQL query
         :return str:
         """
+        self.initialize_timestamps()
         return Template(self.graphql_template_insert).substitute(self.trip_data)
 
     def generate_gql_search(self, trip_id) -> str:
@@ -209,6 +211,21 @@ class MDSTrip:
         :return:
         """
         return self.trip_data.get(trip_key, None)
+
+    def initialize_timestamps(self):
+        """
+        If the trip has start_time and end_time
+        :return:
+        """
+        if self.is_valid():
+            start_time = int(str(self.trip_data["start_time"])[:10])
+            end_time = int(str(self.trip_data["end_time"])[:10])
+            fmt = "%Y-%m-%d %H:%M:%S"
+            start_time_dt = datetime.utcfromtimestamp(start_time)
+            end_time_dt = datetime.utcfromtimestamp(end_time).strftime(fmt)
+
+            self.set_trip_value("start_time", f"{start_time_dt} CST")
+            self.set_trip_value("end_time", f"{end_time_dt} CST")
 
     def initialize_points(self):
         # If the Trips data is valid (has proper format), let's initialize the trip's shapely points
