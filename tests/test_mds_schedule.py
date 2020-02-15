@@ -20,6 +20,20 @@ mds_gql = MDSGraphQLRequest(
     http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
 )
 
+time_max_tester = MDSTimeZone(
+    date_time_now=datetime(2020, 1, 1, 17),
+    offset=1,
+    time_zone="US/Central",
+)
+
+mds_schedule_tester = MDSSchedule(
+    mds_config=mds_config,
+    mds_gql=mds_gql,
+    provider_name="jump",
+    time_min=time_max_tester.get_time_end(),
+    time_max=time_max_tester.get_time_end(),
+)
+
 
 class TestMDSSchedule:
     @classmethod
@@ -183,3 +197,12 @@ class TestMDSSchedule:
             assert False
         except:
             assert True
+
+    def test_quotable_value_success_t1(self):
+        assert mds_schedule_tester.is_quotable_value(1) is False
+
+    def test_quotable_value_success_t2(self):
+        assert mds_schedule_tester.is_quotable_value(1.0) is False
+
+    def test_quotable_value_success_t3(self):
+        assert mds_schedule_tester.is_quotable_value(True) is False
