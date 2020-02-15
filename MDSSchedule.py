@@ -156,19 +156,19 @@ class MDSSchedule:
     def set_schedule_status(self, schedule_id, status_id, **kwargs) -> str:
         """
         Sets the status of the schedule in the database. Refer to the schedule_status table for more details.
-        Returns the HTTP response from the graphql client.
+        Returns the number of affected rows.
         :param int schedule_id: The schedule id to be updated
         :param int status_id: The status of the schedule to be updated
         :param dict kwargs: Any other fields to be updated in key=value format.
-        :return:
+        :return int:
         """
         query = self.get_schedule_update_status_query(
             schedule_id=schedule_id,
             status_id=status_id,
             **kwargs,
         )
-
-        return query
+        response = self.mds_http_graphql.request(query)
+        return response["data"]["update_api_schedule"]["affected_rows"]
 
     def get_query(self) -> str:
         """
