@@ -103,6 +103,10 @@ class MDSSchedule:
             return False
         return True
 
+    @staticmethod
+    def escape_quotes(value):
+        return str(value).replace("\"", "\\\"")
+
     def get_query(self) -> str:
         """
         Retrieves the query from memory
