@@ -233,3 +233,10 @@ class TestMDSSchedule:
         )
         print("Update Mutation Query: " + query)
         assert isinstance(gql(query), str)
+
+    def test_update_status_success_t1(self):
+        updated = mds_schedule_tester.set_schedule_status(
+            schedule_id=-1,
+            status_id=-1
+        )
+        assert updated == 1
