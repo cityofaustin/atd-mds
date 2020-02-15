@@ -240,3 +240,8 @@ class TestMDSSchedule:
             status_id=-1
         )
         assert updated == 1
+
+    def test_get_schedule_by_id_success_t1(self):
+        schedule = mds_schedule_tester.get_schedule_by_id(schedule_id=-1)
+        print(schedule)
+        assert isinstance(schedule, list) and len(schedule) == 1
