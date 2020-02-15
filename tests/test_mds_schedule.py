@@ -206,3 +206,12 @@ class TestMDSSchedule:
 
     def test_quotable_value_success_t3(self):
         assert mds_schedule_tester.is_quotable_value(True) is False
+
+    def test_quotable_value_success_t4(self):
+        assert mds_schedule_tester.is_quotable_value('{"message": "This is escaped"}')
+
+    def test_quotable_value_success_t5(self):
+        assert mds_schedule_tester.is_quotable_value(datetime(2020,1,1,17))
+
+    def test_quotable_value_success_t6(self):
+        assert mds_schedule_tester.is_quotable_value("This is a sample string")
