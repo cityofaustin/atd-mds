@@ -143,6 +143,21 @@ class MDSSchedule:
             "additional_args": additional_args,
         })
 
+    def set_schedule_status(self, schedule_id, status_id, **kwargs) -> str:
+        """
+        Sets the status of the schedule in the database. Refer to the schedule_status table for more details.
+        Returns the HTTP response from the graphql client.
+        :param int schedule_id: The
+        :param int status_id:
+        :param dict kwargs:
+        :return:
+        """
+        return self.get_schedule_update_status_query(
+            schedule_id=schedule_id,
+            status_id=status_id,
+            **kwargs,
+        )
+
     def get_query(self) -> str:
         """
         Retrieves the query from memory
