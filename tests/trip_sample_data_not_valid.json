@@ -1,10 +1,10 @@
 {
-  "provider_id": "0309585e-599f-4e57-ac85-0d31fcbfcb14",
-  "provider_name": "provider_name_mockup_data",
-  "device_id": "da9e067b-7b40-4d2d-8053-bcdf1fc97683",
+  "provider_id": "0309585e-599f-4e57-ac85-ffffffffffff",
+  "provider_name": "sample_co",
+  "device_id": "da9e067b-7b40-4d2d-8053-aaaaaaaaaaaa",
   "vehicle_id": "VID120SF",
   "vehicle_type": "scooter",
-  "trip_id": "b3ca5c86-7f45-4544-bf58-a1107465c70e",
+  "trip_id": "b3ca5c86-7f45-4544-bf58-111111111111",
   "trip_duration": 957,
   "trip_distance": 1879,
   "route": {
