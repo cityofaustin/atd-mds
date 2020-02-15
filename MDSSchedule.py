@@ -94,7 +94,12 @@ class MDSSchedule:
                 })
 
     @staticmethod
-    def is_quotable_value(value):
+    def is_quotable_value(value) -> bool:
+        """
+        Returns True if the value needs to be quoted in GraphQL, or False otherwise.
+        :param * value: The value to be tested, it can be any type.
+        :return bool:
+        """
         if isinstance(value, int):
             return False
         if isinstance(value, float):
@@ -104,7 +109,12 @@ class MDSSchedule:
         return True
 
     @staticmethod
-    def escape_quotes(value):
+    def escape_quotes(value) -> str:
+        """
+        Returns an escaped string for quotation marks in GraphQL
+        :param str value: The string that needs to be quoted
+        :return str:
+        """
         return str(value).replace("\"", "\\\"")
 
     def get_schedule_update_status_query(self, schedule_id, status_id, **kwargs) -> str:
@@ -147,16 +157,18 @@ class MDSSchedule:
         """
         Sets the status of the schedule in the database. Refer to the schedule_status table for more details.
         Returns the HTTP response from the graphql client.
-        :param int schedule_id: The
-        :param int status_id:
-        :param dict kwargs:
+        :param int schedule_id: The schedule id to be updated
+        :param int status_id: The status of the schedule to be updated
+        :param dict kwargs: Any other fields to be updated in key=value format.
         :return:
         """
-        return self.get_schedule_update_status_query(
+        query = self.get_schedule_update_status_query(
             schedule_id=schedule_id,
             status_id=status_id,
             **kwargs,
         )
+
+        return query
 
     def get_query(self) -> str:
         """
