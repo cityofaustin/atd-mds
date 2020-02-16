@@ -92,7 +92,7 @@ def run(**kwargs):
     logging.debug(f"Parsed Time Min: {mds_cli.parsed_date_time_min}")
     logging.debug(f"Parsed Interval: {mds_cli.parsed_interval}")
 
-    # Initialize the Schedule Class
+    # Retrieve the Schedule Class instance
     mds_schedule = mds_cli.initialize_schedule()
     # Gather schedule items:
     schedule = mds_schedule.get_schedule()
@@ -131,21 +131,83 @@ def run(**kwargs):
         s3_trips_file = data_path + "trips.json"
         # Load the file from S3 into a dictionary called 'trips'
         trips = mds_aws.load(s3_trips_file)
+
+        trips_count = len(trips["data"]["trips"])
+        total_trips = 0
+        trips_valid = 0
+        trips_success = 0
+        trips_error = 0
+
         # For each trip, we need to build a trip object
         for trip in trips["data"]["trips"]:
+            # print(f'Processing trip: {trip["trip_id"]}')
+
             mds_trip = MDSTrip(
                 mds_config=mds_config,  # We pass the configuration class
                 mds_pip=mds_pip,  # We pass the point-in-polygon class
                 mds_gql=mds_gql,  # We pass the HTTP GraphQL class
                 trip_data=trip  # We provide this individual trip data
             )
+            total_trips += 1
             # We can generate a GraphQL Query for debugging
-            gql = mds_trip.generate_gql_insert()
+            # gql = mds_trip.generate_gql_insert()
             # If the trip is validated
             if mds_trip.is_valid():
-                # We now 'save' the trip to in the database
-                print(gql)
+                trips_valid += 1
+                if mds_trip.save():
+                    print(f'Processed trip ({total_trips}/{trips_count}): {trip["trip_id"]}')
+                    trips_success += 1
+                else:
+                    print(f'Error Processing trip: {trip["trip_id"]}')
+                    trips_error += 1
                 # mds_trip.save()
+            else:
+                print("Error when inserting trip: ")
+                print(json.dumps(mds_trip.get_validation_errors()))
+                gql = mds_trip.generate_gql_insert()
+                print(gql)
+                exit(1)
+
+        trips_report = {
+            "total_trips": total_trips,
+            "trips_valid": trips_valid,
+            "trips_success": trips_success,
+            "trips_error": trips_error,
+        }
+        """
+        Status Types:
+            5,Data insertion succeeded
+            -5,Data insertion failed
+            6,Data insertion completed with errors
+            -6,Data insertion contained all errors
+        """
+        if total_trips == trips_success and trips_error == 0:
+            final_status = 5
+
+        if trips_success > 0 and trips_error > 0:
+            final_status = 6
+
+        if total_trips == trips_error:
+            final_status = -6
+
+        print("Updating schedule status...")
+        mds_schedule.set_schedule_status(
+            schedule_id=schedule_item["schedule_id"],
+            status_id=final_status,
+            records_processed=trips_success,
+            records_total=total_trips,
+        )
+
+        print("As of this run: ")
+        print(json.dumps(trips_report))
+
+    # Gather timer end & output to console...
+    hours, minutes, seconds = mds_cli.get_timer_end()
+    logging.debug(
+        "Overall process finished in: {:0>2}:{:0>2}:{:05.2f}".format(
+            int(hours), int(minutes), seconds
+        )
+    )
 
 
 if __name__ == "__main__":
