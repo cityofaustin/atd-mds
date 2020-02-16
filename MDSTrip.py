@@ -141,6 +141,13 @@ class MDSTrip:
         except:
             return False
 
+    def get_validation_errors(self) -> dict:
+        """
+        Returns a dictionary with all the validation errors.
+        :return:
+        """
+        return self.validator.errors
+
     @staticmethod
     def get_affected_rows(gql_key, response) -> int:
         """
