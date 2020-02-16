@@ -141,6 +141,19 @@ class MDSTrip:
         except:
             return False
 
+    @staticmethod
+    def get_affected_rows(gql_key, response) -> int:
+        """
+        Returns the number of affected rows given a response, or 0 if the response is invalid.
+        :param str gql_key: The response key expected for the GraohQL query
+        :param dict response: The json response from the HTTP GQL Client
+        :return:
+        """
+        try:
+            return int(response["data"][gql_key]["affected_rows"])
+        except:
+            return 0
+
     def save(self) -> bool:
         """
         Returns True if the record has been saved to Postgres successfully, false otherwise.
@@ -153,7 +166,10 @@ class MDSTrip:
             logging.debug(
                 "MDSTrip::save() Request finished, response: %s" % str(response)
             )
-            return True
+            return self.get_affected_rows(
+                gql_key="insert_api_trips",
+                response=response
+            ) != 0
         else:
             logging.debug("MDSTrip::save() trip marked as invalid...")
             return False
