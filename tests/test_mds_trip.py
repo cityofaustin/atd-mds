@@ -64,7 +64,7 @@ class TestMDSTrip:
         # If the trip is marked as valid, then the test failed.
         assert mds_trip.is_valid() is False
 
-    def test_save_success_t1(self):
+    def test_generate_gql_insert_success_t1(self):
         with open("tests/trip_sample_data_valid.json") as f:
             trip_data = json.load(f)
 
@@ -168,3 +168,11 @@ class TestMDSTrip:
             and len(trips) == 0
         )
         assert success
+
+    def test_save_success_t1(self):
+        with open("tests/trip_sample_data_valid.json") as f:
+            trip_data = json.load(f)
+
+        mds_trip = MDSTrip(mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data)
+
+        assert mds_trip.save()
