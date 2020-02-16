@@ -280,3 +280,35 @@ class MDSTrip:
                 )
             except:
                 pass
+
+    @staticmethod
+    def get_trip_by_id(mds_gql, trip_id):
+        query = Template("""
+            query getTripById {
+              api_trips(where: {trip_id: {_eq: "$trip_id"}}) {
+                provider_id,
+                provider_name,
+                device_id,
+                vehicle_type,
+                accuracy,
+                propulsion_type,
+                trip_id,
+                trip_duration,
+                trip_distance,
+                start_time,
+                end_time,
+                council_district_start,
+                council_district_end,
+                orig_cell_id,
+                dest_cell_id,
+                census_geoid_start,
+                census_geoid_end,
+                start_latitude,
+                start_longitude,
+                end_latitude,
+                end_longitude,
+              }
+            }
+        """).substitute(trip_id=trip_id)
+        results = mds_gql.request(query)
+        return results["data"]["api_trips"]
