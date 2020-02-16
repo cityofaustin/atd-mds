@@ -158,3 +158,13 @@ class TestMDSTrip:
             and trips[0]["trip_id"] == trip_id
         )
         assert success
+
+    def test_get_trip_by_id_fail_t1(self):
+        trip_id = "b3ca5c86-7f45-4544-bf58-111111111110"
+        trips = MDSTrip.get_trip_by_id(mds_gql=mds_gql, trip_id=trip_id)
+        success = (
+            1 == 1
+            and isinstance(trips, list)
+            and len(trips) == 0
+        )
+        assert success
