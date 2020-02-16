@@ -10,6 +10,7 @@ from MDSAWS import MDSAWS
 
 mds_config = MDSConfig()
 
+
 class TestMDSAWS:
     @classmethod
     def setup_class(cls):
@@ -24,7 +25,7 @@ class TestMDSAWS:
             bucket_name=mds_config.ATD_MDS_BUCKET,
             aws_default_region=mds_config.ATD_MDS_REGION,
             aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
+            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
         )
         assert isinstance(mds_aws, MDSAWS)
 
@@ -33,7 +34,7 @@ class TestMDSAWS:
             bucket_name=mds_config.ATD_MDS_BUCKET,
             aws_default_region=mds_config.ATD_MDS_REGION,
             aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
+            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
         )
         aws_config = mds_aws.get_config()
         print(aws_config)
@@ -68,7 +69,7 @@ class TestMDSAWS:
             bucket_name=mds_config.ATD_MDS_BUCKET,
             aws_default_region=mds_config.ATD_MDS_REGION,
             aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
+            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
         )
 
         mds_aws.set_json_document(json_document=json_document)
@@ -80,7 +81,7 @@ class TestMDSAWS:
             bucket_name=mds_config.ATD_MDS_BUCKET,
             aws_default_region=mds_config.ATD_MDS_REGION,
             aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
+            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
         )
         mds_aws.set_json_document(json_document=json_document)
         assert isinstance(mds_aws.json_document, str)
@@ -95,7 +96,7 @@ class TestMDSAWS:
             bucket_name=mds_config.ATD_MDS_BUCKET,
             aws_default_region=mds_config.ATD_MDS_REGION,
             aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
+            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
         )
         mds_aws.set_json_document(json_document=json_document)
         assert isinstance(mds_aws.json_document, str) is False
@@ -105,21 +106,18 @@ class TestMDSAWS:
             bucket_name=mds_config.ATD_MDS_BUCKET,
             aws_default_region=mds_config.ATD_MDS_REGION,
             aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
+            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
         )
         mds_aws.set_json_document(json_document=None)
         assert isinstance(mds_aws.json_document, str) is False
 
     def test_load_invalid_json_t3(self):
-        json_document = {
-            "valid": "dictionary",
-            "but": "not string"
-        }
+        json_document = {"valid": "dictionary", "but": "not string"}
         mds_aws = MDSAWS(
             bucket_name=mds_config.ATD_MDS_BUCKET,
             aws_default_region=mds_config.ATD_MDS_REGION,
             aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
+            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
         )
         mds_aws.set_json_document(json_document=json_document)
         assert isinstance(mds_aws.json_document, str) is False
@@ -129,7 +127,7 @@ class TestMDSAWS:
             bucket_name=mds_config.ATD_MDS_BUCKET,
             aws_default_region=mds_config.ATD_MDS_REGION,
             aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
+            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
         )
         assert mds_aws.client is not None
 
@@ -138,7 +136,7 @@ class TestMDSAWS:
             bucket_name=mds_config.ATD_MDS_BUCKET,
             aws_default_region=mds_config.ATD_MDS_REGION,
             aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY
+            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
         )
         file_path = "tests/json_save_test1.json"
         initial_file_content = """

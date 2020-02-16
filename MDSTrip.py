@@ -1,5 +1,6 @@
 import logging
 import json
+from datetime import datetime
 from string import Template
 
 from MDSPointInPolygon import MDSPointInPolygon
@@ -63,7 +64,7 @@ class MDSTrip:
                 trip_distance: "$trip_distance",
                 trip_duration: "$trip_duration",
                 vehicle_type: "$vehicle_type",
-                publication_time: "$publication_time",
+                publication_time: $publication_time,
                 standard_cost: $standard_cost,
                 actual_cost: $actual_cost,
                 start_latitude: $start_latitude,
@@ -78,7 +79,7 @@ class MDSTrip:
                 census_geoid_end: "$census_geoid_end",
             },
             on_conflict: {
-                constraint: new_constraint_name,
+                constraint: trips_trip_id_pk,
                 update_columns: [
                     provider_id,
                     provider_name,
@@ -140,6 +141,19 @@ class MDSTrip:
         except:
             return False
 
+    @staticmethod
+    def get_affected_rows(gql_key, response) -> int:
+        """
+        Returns the number of affected rows given a response, or 0 if the response is invalid.
+        :param str gql_key: The response key expected for the GraohQL query
+        :param dict response: The json response from the HTTP GQL Client
+        :return:
+        """
+        try:
+            return int(response["data"][gql_key]["affected_rows"])
+        except:
+            return 0
+
     def save(self) -> bool:
         """
         Returns True if the record has been saved to Postgres successfully, false otherwise.
@@ -149,27 +163,33 @@ class MDSTrip:
         if self.is_valid():
             query = self.generate_gql_insert()
             response = self.mds_http_graphql.request(query)
-            logging.debug("MDSTrip::save() Request finished, response: %s" % str(response))
-            return True
+            logging.debug(
+                "MDSTrip::save() Request finished, response: %s" % str(response)
+            )
+            return self.get_affected_rows(
+                gql_key="insert_api_trips",
+                response=response
+            ) != 0
         else:
             logging.debug("MDSTrip::save() trip marked as invalid...")
             return False
 
-    def exists(self) -> bool:
+    def exists(self, trip_id) -> bool:
         """
         Returns true if the record exists in the database, false otherwise.
         :return bool:
         """
-        if self.trip_data:
-            return True
-        else:
-            return False
+        return (
+            len(self.get_trip_by_id(mds_gql=self.mds_http_graphql, trip_id=trip_id))
+            == 1
+        )
 
     def generate_gql_insert(self) -> str:
         """
         Generates a string with a GraphQL query
         :return str:
         """
+        self.initialize_timestamps()
         return Template(self.graphql_template_insert).substitute(self.trip_data)
 
     def generate_gql_search(self, trip_id) -> str:
@@ -177,9 +197,7 @@ class MDSTrip:
         Generates a string with a GraphQL query to search for a record.
         :return str:
         """
-        return Template(self.graphql_template_search).substitute({
-            "trip_id": trip_id
-        })
+        return Template(self.graphql_template_search).substitute({"trip_id": trip_id})
 
     def get_coordinates(self, start=True) -> (float, float):
         """
@@ -191,7 +209,9 @@ class MDSTrip:
         """
         # The index is the first element, or the last.
         index = 0 if start else (len(self.trip_data["route"]["features"]) - 1)
-        coordinates = self.trip_data["route"]["features"][index]["geometry"]["coordinates"]
+        coordinates = self.trip_data["route"]["features"][index]["geometry"][
+            "coordinates"
+        ]
         return coordinates[0], coordinates[1]
 
     def set_trip_value(self, trip_key, trip_value):
@@ -210,10 +230,26 @@ class MDSTrip:
         """
         return self.trip_data.get(trip_key, None)
 
+    def initialize_timestamps(self):
+        """
+        If the trip has start_time and end_time
+        :return:
+        """
+        if self.is_valid():
+            start_time = int(str(self.trip_data["start_time"])[:10])
+            end_time = int(str(self.trip_data["end_time"])[:10])
+            fmt = "%Y-%m-%d %H:%M:%S"
+            start_time_dt = datetime.utcfromtimestamp(start_time)
+            end_time_dt = datetime.utcfromtimestamp(end_time).strftime(fmt)
+
+            self.set_trip_value("start_time", f"{start_time_dt} CST")
+            self.set_trip_value("end_time", f"{end_time_dt} CST")
+
     def initialize_points(self):
         # If the Trips data is valid (has proper format), let's initialize the trip's shapely points
-        if isinstance(self.trip_data, dict) \
-                and isinstance(self.mds_pip, MDSPointInPolygon):
+        if isinstance(self.trip_data, dict) and isinstance(
+            self.mds_pip, MDSPointInPolygon
+        ):
             try:
                 # Get coordinates for start and end of trip
                 start_long, start_lat = self.get_coordinates(start=True)
@@ -225,41 +261,71 @@ class MDSTrip:
 
                 # Convert each to shapely point objects
                 start_point = self.mds_pip.create_point(
-                    longitude_x=start_long,
-                    latitude_y=start_lat
+                    longitude_x=start_long, latitude_y=start_lat
                 )
                 end_point = self.mds_pip.create_point(
-                    longitude_x=end_long,
-                    latitude_y=end_lat
+                    longitude_x=end_long, latitude_y=end_lat
                 )
                 # Retrieve the Census Tract
                 self.set_trip_value(
                     "census_geoid_start",
-                    self.mds_pip.get_census_tract_id(mds_point=start_point)
+                    self.mds_pip.get_census_tract_id(mds_point=start_point),
                 )
                 self.set_trip_value(
                     "census_geoid_end",
-                    self.mds_pip.get_census_tract_id(mds_point=end_point)
+                    self.mds_pip.get_census_tract_id(mds_point=end_point),
                 )
 
                 # Retrieve the council district
                 self.set_trip_value(
                     "council_district_start",
-                    self.mds_pip.get_district_id(mds_point=start_point)
+                    self.mds_pip.get_district_id(mds_point=start_point),
                 )
                 self.set_trip_value(
                     "council_district_end",
-                    self.mds_pip.get_district_id(mds_point=end_point)
+                    self.mds_pip.get_district_id(mds_point=end_point),
                 )
 
                 # Retrieve the Hexagon ID
                 self.set_trip_value(
-                    "orig_cell_id",
-                    self.mds_pip.get_hex_id(mds_point=start_point)
+                    "orig_cell_id", self.mds_pip.get_hex_id(mds_point=start_point)
                 )
                 self.set_trip_value(
-                    "dest_cell_id",
-                    self.mds_pip.get_hex_id(mds_point=end_point)
+                    "dest_cell_id", self.mds_pip.get_hex_id(mds_point=end_point)
                 )
             except:
                 pass
+
+    @staticmethod
+    def get_trip_by_id(mds_gql, trip_id):
+        query = Template(
+            """
+            query getTripById {
+              api_trips(where: {trip_id: {_eq: "$trip_id"}}) {
+                provider_id,
+                provider_name,
+                device_id,
+                vehicle_type,
+                accuracy,
+                propulsion_type,
+                trip_id,
+                trip_duration,
+                trip_distance,
+                start_time,
+                end_time,
+                council_district_start,
+                council_district_end,
+                orig_cell_id,
+                dest_cell_id,
+                census_geoid_start,
+                census_geoid_end,
+                start_latitude,
+                start_longitude,
+                end_latitude,
+                end_longitude,
+              }
+            }
+        """
+        ).substitute(trip_id=trip_id)
+        results = mds_gql.request(query)
+        return results["data"]["api_trips"]
