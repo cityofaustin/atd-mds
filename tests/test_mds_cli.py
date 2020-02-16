@@ -13,8 +13,9 @@ from MDSGraphQLRequest import MDSGraphQLRequest
 mds_config = MDSConfig()
 mds_gql = MDSGraphQLRequest(
     endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
-    http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
+    http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None),
 )
+
 
 class TestMDSCli:
     @classmethod
@@ -32,7 +33,7 @@ class TestMDSCli:
             provider="jump",
             interval=1,
             time_max="2020-1-11-17",
-            time_min=None
+            time_min=None,
         )
 
         assert isinstance(mds_cli, MDSCli)
@@ -45,7 +46,7 @@ class TestMDSCli:
                 provider="not-a-valid-provider",
                 interval=1,
                 time_max="2020-1-11-17",
-                time_min=None
+                time_min=None,
             )
             assert False
         except:
@@ -59,7 +60,7 @@ class TestMDSCli:
                 provider="lime",
                 interval=1,
                 time_max="not-a-valid-time-parameter",
-                time_min=None
+                time_min=None,
             )
             assert False
         except:
@@ -73,7 +74,7 @@ class TestMDSCli:
                 provider=None,
                 interval=1,
                 time_max=None,
-                time_min=None
+                time_min=None,
             )
             assert False
         except:
@@ -86,7 +87,7 @@ class TestMDSCli:
             provider="jump",
             interval=1,
             time_max="2020-1-11-17",
-            time_min=None
+            time_min=None,
         )
 
         s = mds_cli.initialize_schedule()
@@ -100,7 +101,7 @@ class TestMDSCli:
             provider="jump",
             interval=2,
             time_max="2020-1-11-17",
-            time_min=None
+            time_min=None,
         )
 
         s = mds_cli.initialize_schedule()
@@ -114,7 +115,7 @@ class TestMDSCli:
             provider="jump",
             interval=1,
             time_max="2020-1-11-0",
-            time_min=None
+            time_min=None,
         )
 
         s = mds_cli.initialize_schedule()
@@ -128,7 +129,7 @@ class TestMDSCli:
             provider="jump",
             interval=23,
             time_max="2020-1-11-0",
-            time_min=None
+            time_min=None,
         )
 
         s = mds_cli.initialize_schedule()

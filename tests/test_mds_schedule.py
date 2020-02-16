@@ -18,13 +18,11 @@ from MDSSchedule import MDSSchedule
 mds_config = MDSConfig()
 mds_gql = MDSGraphQLRequest(
     endpoint=mds_config.get_setting("HASURA_ENDPOINT", None),
-    http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None)
+    http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", None),
 )
 
 time_max_tester = MDSTimeZone(
-    date_time_now=datetime(2020, 1, 1, 17),
-    offset=1,
-    time_zone="US/Central",
+    date_time_now=datetime(2020, 1, 1, 17), offset=1, time_zone="US/Central",
 )
 
 mds_schedule_tester = MDSSchedule(
@@ -212,15 +210,14 @@ class TestMDSSchedule:
         assert mds_schedule_tester.is_quotable_value('{"message": "This is escaped"}')
 
     def test_quotable_value_success_t5(self):
-        assert mds_schedule_tester.is_quotable_value(datetime(2020,1,1,17))
+        assert mds_schedule_tester.is_quotable_value(datetime(2020, 1, 1, 17))
 
     def test_quotable_value_success_t6(self):
         assert mds_schedule_tester.is_quotable_value("This is a sample string")
 
     def test_update_status_query_success_t1(self):
         query = mds_schedule_tester.get_schedule_update_status_query(
-            schedule_id=-1,
-            status_id=-1
+            schedule_id=-1, status_id=-1
         )
         print("Update Mutation Query: " + query)
         assert isinstance(gql(query), str)
@@ -230,16 +227,13 @@ class TestMDSSchedule:
             schedule_id=-1,
             status_id=-1,
             payload="https://bucket.s3.aws.com/payload.json",
-            message="{\"message\":\"Success\"}"
+            message='{"message":"Success"}',
         )
         print("Update Mutation Query: " + query)
         assert isinstance(gql(query), str)
 
     def test_update_status_success_t1(self):
-        updated = mds_schedule_tester.set_schedule_status(
-            schedule_id=-1,
-            status_id=-1
-        )
+        updated = mds_schedule_tester.set_schedule_status(schedule_id=-1, status_id=-1)
         assert updated == 1
 
     def test_get_schedule_by_id_success_t1(self):
@@ -248,22 +242,23 @@ class TestMDSSchedule:
         assert isinstance(schedule, list) and len(schedule) == 1
 
     def test_update_status_success_t2(self):
-        payload = "http://bucket.s3.aws.com/payload_%s_.json" % str(randrange(1000, 9999))
-        message = "{\"message\": \"This is a message: %s\"}" % str(randrange(1000, 9999))
+        payload = "http://bucket.s3.aws.com/payload_%s_.json" % str(
+            randrange(1000, 9999)
+        )
+        message = '{"message": "This is a message: %s"}' % str(randrange(1000, 9999))
         updated = mds_schedule_tester.set_schedule_status(
-            schedule_id=-1,
-            status_id=-1,
-            payload=payload,
-            message=message,
+            schedule_id=-1, status_id=-1, payload=payload, message=message,
         )
         schedule = mds_schedule_tester.get_schedule_by_id(schedule_id=-1)
         print(f"Payload: {payload}")
         print(f"message: {message}")
         print(f"updated: {updated}")
         print(f"schedule: {schedule}")
-        assert 1 == 1 \
-            and updated == 1 \
-            and isinstance(schedule, list) \
-            and len(schedule) == 1 \
-            and schedule[0]["payload"] == payload \
+        assert (
+            1 == 1
+            and updated == 1
+            and isinstance(schedule, list)
+            and len(schedule) == 1
+            and schedule[0]["payload"] == payload
             and schedule[0]["message"] == message
+        )

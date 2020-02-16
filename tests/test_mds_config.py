@@ -7,6 +7,7 @@ from mds import MDSTimeZone
 from MDSConfig import MDSConfig
 
 import logging
+
 logging.disable(logging.DEBUG)
 
 
@@ -31,7 +32,9 @@ class TestMDSConfig:
             time_zone="US/Central",  # US/Central
         )
 
-        data_path = mds_config.get_data_path(provider_name="bird", date=tz_time.get_time_end())
+        data_path = mds_config.get_data_path(
+            provider_name="bird", date=tz_time.get_time_end()
+        )
         assert len(data_path) > 0
 
     def test_provider_config(self):

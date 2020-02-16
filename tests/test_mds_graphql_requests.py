@@ -12,7 +12,7 @@ mds_config = MDSConfig()
 
 gql_request = MDSGraphQLRequest(
     endpoint=mds_config.get_setting("HASURA_ENDPOINT", "n/a"),
-    http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", "n/a")
+    http_auth_token=mds_config.get_setting("HASURA_ADMIN_KEY", "n/a"),
 )
 
 

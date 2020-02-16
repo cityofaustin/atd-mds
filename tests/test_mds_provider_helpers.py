@@ -1,6 +1,7 @@
 from datetime import datetime
 from MDSProviderHelpers import MDSProviderHelpers
 
+
 class TestMDSProviderHelpers:
     @classmethod
     def setup_class(cls):
@@ -14,15 +15,11 @@ class TestMDSProviderHelpers:
     # Testing parse_timestamp
     #
     def test_parse_timestamp_bad_t1(self):
-        ts = MDSProviderHelpers.parse_timestamp({
-                "not": "an int"
-        })
+        ts = MDSProviderHelpers.parse_timestamp({"not": "an int"})
         assert isinstance(ts, datetime) is False
 
     def test_parse_timestamp_bad_t2(self):
-        ts = MDSProviderHelpers.parse_timestamp(
-            "Not a parsable numeric string"
-        )
+        ts = MDSProviderHelpers.parse_timestamp("Not a parsable numeric string")
         assert isinstance(ts, datetime) is False
 
     def test_parse_timestamp_good_t1(self):
@@ -46,10 +43,12 @@ class TestMDSProviderHelpers:
         if not isinstance(custom_dt, dict):
             return False
 
-        if "year" not in custom_dt \
-            or "month" not in custom_dt \
-            or "day" not in custom_dt \
-            or "hour" not in custom_dt:
+        if (
+            "year" not in custom_dt
+            or "month" not in custom_dt
+            or "day" not in custom_dt
+            or "hour" not in custom_dt
+        ):
             return False
 
         return True
@@ -67,7 +66,7 @@ class TestMDSProviderHelpers:
         assert self.is_valid_custom_date_time(cdt) is False
 
     def test_valid_custom_date_time_bad_t2(self):
-        cdt = MDSProviderHelpers.parse_custom_datetime({"not":"close"})
+        cdt = MDSProviderHelpers.parse_custom_datetime({"not": "close"})
         assert self.is_valid_custom_date_time(cdt) is False
 
     def test_valid_custom_date_time_bad_t3(self):
@@ -78,15 +77,11 @@ class TestMDSProviderHelpers:
     # Test parse_interval
     #
     def test_parse_interval_bad_t1(self):
-        ts = MDSProviderHelpers.parse_interval({
-            "not": "an int"
-        })
+        ts = MDSProviderHelpers.parse_interval({"not": "an int"})
         assert isinstance(ts, int) is False
 
     def test_parse_interval_bad_t2(self):
-        ts = MDSProviderHelpers.parse_interval(
-            "Not a parsable numeric string"
-        )
+        ts = MDSProviderHelpers.parse_interval("Not a parsable numeric string")
         assert isinstance(ts, int) is False
 
     def test_parse_interval_good_t1(self):
@@ -123,7 +118,5 @@ class TestMDSProviderHelpers:
 
     def test_load_file_bad_t3(self):
         # Floating point values are ok, but they are truncated
-        ts = MDSProviderHelpers.load_file({
-            "json": "document"
-        })
+        ts = MDSProviderHelpers.load_file({"json": "document"})
         assert isinstance(ts, dict) is False
