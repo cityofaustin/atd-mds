@@ -160,7 +160,6 @@ def run(**kwargs):
                 else:
                     print(f'Error Processing trip: {trip["trip_id"]}')
                     trips_error += 1
-                # mds_trip.save()
             else:
                 print("Error when inserting trip: ")
                 print(json.dumps(mds_trip.get_validation_errors()))
