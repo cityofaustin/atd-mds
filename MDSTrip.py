@@ -2,10 +2,10 @@ import logging
 import json
 from datetime import datetime
 from string import Template
+from pytz import reference
 
 from MDSPointInPolygon import MDSPointInPolygon
 from cerberus import Validator
-
 
 class MDSTrip:
     __slots__ = [
@@ -64,7 +64,7 @@ class MDSTrip:
                 trip_distance: "$trip_distance",
                 trip_duration: "$trip_duration",
                 vehicle_type: "$vehicle_type",
-                publication_time: $publication_time,
+                publication_time: "$publication_time",
                 standard_cost: $standard_cost,
                 actual_cost: $actual_cost,
                 start_latitude: $start_latitude,
@@ -237,20 +237,26 @@ class MDSTrip:
         """
         return self.trip_data.get(trip_key, None)
 
+    @staticmethod
+    def translate_timestamp(utc_unix_timestamp) -> str:
+        time = int(str(utc_unix_timestamp)[:10])
+        fmt = "%Y-%m-%d %H:%M:%S"
+        time_str = datetime.fromtimestamp(time).strftime(fmt)
+        timezone = reference.LocalTimezone().tzname(datetime.now())
+        return f"{time_str} {timezone}"
+
     def initialize_timestamps(self):
         """
-        If the trip has start_time and end_time
+        If the trip has start_time, end_time and publication_time
         :return:
         """
         if self.is_valid():
-            start_time = int(str(self.trip_data["start_time"])[:10])
-            end_time = int(str(self.trip_data["end_time"])[:10])
-            fmt = "%Y-%m-%d %H:%M:%S"
-            start_time_dt = datetime.utcfromtimestamp(start_time)
-            end_time_dt = datetime.utcfromtimestamp(end_time).strftime(fmt)
-
-            self.set_trip_value("start_time", f"{start_time_dt} CST")
-            self.set_trip_value("end_time", f"{end_time_dt} CST")
+            start_time = self.translate_timestamp(self.trip_data["start_time"])
+            end_time = self.translate_timestamp(self.trip_data["end_time"])
+            publication_time = self.translate_timestamp(self.trip_data["publication_time"])
+            self.set_trip_value("start_time", start_time)
+            self.set_trip_value("end_time", end_time)
+            self.set_trip_value("publication_time", publication_time)
 
     def initialize_points(self):
         # If the Trips data is valid (has proper format), let's initialize the trip's shapely points
