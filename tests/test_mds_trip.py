@@ -67,6 +67,22 @@ class TestMDSTrip:
         )
         assert mds_trip.is_valid()
 
+    def test_validator_success_t2(self):
+        with open("tests/trip_sample_data_valid_long.json") as f:
+            trip_data = json.load(f)
+        mds_trip = MDSTrip(
+            mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data
+        )
+        assert mds_trip.is_valid()
+
+    def test_validator_success_t3(self):
+        with open("tests/trip_sample_data_valid_short.json") as f:
+            trip_data = json.load(f)
+        mds_trip = MDSTrip(
+            mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data
+        )
+        assert mds_trip.is_valid()
+
     def test_validator_fail_t1(self):
         with open("tests/trip_sample_data_not_valid.json") as f:
             trip_data = json.load(f)
