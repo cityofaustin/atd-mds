@@ -31,9 +31,10 @@ class MDSTrip:
         "accuracy": {"type": "integer"},
         "start_time": {"type": "integer"},
         "end_time": {"type": "integer"},
-        "standard_cost": {"type": "integer"},
-        "actual_cost": {"type": "integer"},
-        "publication_time": {"type": "integer"},
+        "standard_cost": {"required": False, "type": "integer"},
+        "actual_cost": {"required": False, "type": "integer"},
+        "publication_time": {"required": False, "type": "integer"},
+        "parking_verification_url": {"required": False, "type": "string"},
         # Coordinates
         "start_latitude": {"type": "float"},
         "start_longitude": {"type": "float"},
