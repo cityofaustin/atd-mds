@@ -104,6 +104,10 @@ def run(**kwargs):
     # than one hour blocks that need to be saved to a json file.
     all_trips = []
 
+    if len(schedule) == 0:
+        logging.debug(f"There are no schedule items for '{mds_cli.provider}' ...")
+        exit(1)
+
     # For each schedule item:
     for schedule_item in schedule:
         logging.debug("Running with: ")
