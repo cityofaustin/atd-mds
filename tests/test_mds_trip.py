@@ -218,3 +218,65 @@ class TestMDSTrip:
         )
 
         assert mds_trip.save()
+
+    def test_veo_uuid_generator_success_t1(self):
+        with open("tests/trip_sample_data_valid.json") as f:
+            trip_data = json.load(f)
+
+        mds_trip = MDSTrip(
+            mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data
+        )
+        assert (
+                mds_trip.int_to_uuid(integer_number=1)
+                == "0309585e-599f-4e57-ac85-fffffffffff1"
+        )
+
+    def test_veo_uuid_generator_success_t2(self):
+        with open("tests/trip_sample_data_valid.json") as f:
+            trip_data = json.load(f)
+        mds_trip = MDSTrip(
+            mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data
+        )
+        assert (
+            mds_trip.int_to_uuid(integer_number=104865)
+            == "0309585e-599f-4e57-ac85-fffffff199a1"
+        )
+
+    def test_veo_uuid_generator_success_t3(self):
+        with open("tests/trip_sample_data_valid.json") as f:
+            trip_data = json.load(f)
+        mds_trip = MDSTrip(
+            mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data
+        )
+        assert (
+            mds_trip.int_to_uuid(integer_number=99999999)
+            == "0309585e-599f-4e57-ac85-fffff5f5e0ff"
+        )
+
+    def test_get_provider_name_success_t1(self):
+        with open("tests/trip_sample_data_valid.json") as f:
+            trip_data = json.load(f)
+        mds_trip = MDSTrip(
+            mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data
+        )
+        assert mds_trip.get_provider_name() == "sample_co"
+
+    def test_get_provider_name_success_t2(self):
+        with open("tests/trip_sample_data_valid_short.json") as f:
+            trip_data = json.load(f)
+
+        mds_trip = MDSTrip(
+            mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data
+        )
+
+        assert mds_trip.get_provider_name() == "VeoRide INC."
+
+    def test_get_provider_name_fail_t1(self):
+        with open("tests/trip_sample_data_not_valid.json") as f:
+            trip_data = json.load(f)
+
+        mds_trip = MDSTrip(
+            mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data
+        )
+
+        assert mds_trip.get_provider_name() is None
