@@ -89,7 +89,7 @@ def run(**kwargs):
     print(f"Parsed Interval: {mds_cli.parsed_interval}")
 
     # Retrieve the Schedule Class instance
-    mds_schedule = mds_cli.initialize_schedule()
+    mds_schedule = mds_cli.initialize_schedule(status_id=2)
     # Gather schedule items:
     schedule = mds_schedule.get_schedule()
     print(f"Schedule: {json.dumps(schedule)}")
@@ -214,7 +214,7 @@ def run(**kwargs):
 
     # Gather timer end & output to console...
     hours, minutes, seconds = mds_cli.get_timer_end()
-    logging.debug(
+    print(
         "Overall process finished in: {:0>2}:{:0>2}:{:05.2f}".format(
             int(hours), int(minutes), seconds
         )
