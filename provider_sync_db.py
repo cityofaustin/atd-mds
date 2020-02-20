@@ -137,8 +137,6 @@ def run(**kwargs):
 
         # For each trip, we need to build a trip object
         for trip in trips["data"]["trips"]:
-            print(f'Constructing trip: {trip["trip_id"]}')
-
             mds_trip = MDSTrip(
                 mds_config=mds_config,  # We pass the configuration class
                 mds_pip=mds_pip,  # We pass the point-in-polygon class
