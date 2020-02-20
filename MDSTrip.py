@@ -189,8 +189,8 @@ class MDSTrip:
         :return bool:
         """
         logging.debug("MDSTrip::save() saving trip...")
+        query = self.generate_gql_insert()
         if self.is_valid():
-            query = self.generate_gql_insert()
             response = self.mds_http_graphql.request(query)
             logging.debug(
                 "MDSTrip::save() Request finished, response: %s" % str(response)
@@ -200,7 +200,8 @@ class MDSTrip:
                 response=response
             ) != 0
         else:
-            logging.debug("MDSTrip::save() trip marked as invalid...")
+            print(f"MDSTrip::save() trip marked as invalid: {self.trip_data['trip_id']}")
+            print(query)
             return False
 
     def exists(self, trip_id) -> bool:
