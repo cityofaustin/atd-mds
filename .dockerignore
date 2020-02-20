@@ -16,3 +16,4 @@ secrets.py
 *.md
 *.log
 Dockerfile
+Dockerfile.base

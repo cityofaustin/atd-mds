@@ -1,11 +1,14 @@
 import logging
 import json
+import uuid
+import re
+
 from datetime import datetime
 from string import Template
+from pytz import reference
 
 from MDSPointInPolygon import MDSPointInPolygon
 from cerberus import Validator
-
 
 class MDSTrip:
     __slots__ = [
@@ -31,9 +34,10 @@ class MDSTrip:
         "accuracy": {"type": "integer"},
         "start_time": {"type": "integer"},
         "end_time": {"type": "integer"},
-        "standard_cost": {"type": "integer"},
-        "actual_cost": {"type": "integer"},
-        "publication_time": {"type": "integer"},
+        "standard_cost": {"required": False, "type": "integer"},
+        "actual_cost": {"required": False, "type": "integer"},
+        "publication_time": {"required": False, "type": "integer"},
+        "parking_verification_url": {"required": False, "type": "string"},
         # Coordinates
         "start_latitude": {"type": "float"},
         "start_longitude": {"type": "float"},
@@ -64,7 +68,7 @@ class MDSTrip:
                 trip_distance: "$trip_distance",
                 trip_duration: "$trip_duration",
                 vehicle_type: "$vehicle_type",
-                publication_time: $publication_time,
+                publication_time: "$publication_time",
                 standard_cost: $standard_cost,
                 actual_cost: $actual_cost,
                 start_latitude: $start_latitude,
@@ -141,6 +145,31 @@ class MDSTrip:
         except:
             return False
 
+    def get_validation_errors(self) -> dict:
+        """
+        Returns a dictionary with all the validation errors.
+        :return:
+        """
+        return self.validator.errors
+
+    def int_to_uuid(self, integer_number):
+        """
+        Turns an integer into an uuid using the provider id as a template.
+        :param integer_number:
+        :return:
+        """
+        provider_id = self.trip_data.get("provider_id", None)
+        ms = str(uuid.UUID(bytes=int(f"{integer_number}").to_bytes(16, "big")))
+        i = re.search(r'[^0\-]', ms).start()
+        return f"{provider_id[:i]}{ms[i:]}"
+
+    def get_provider_name(self):
+        """
+        Returns the name of the provider, or None if not declared.
+        :return:
+        """
+        return self.trip_data.get("provider_name", None)
+
     @staticmethod
     def get_affected_rows(gql_key, response) -> int:
         """
@@ -160,8 +189,8 @@ class MDSTrip:
         :return bool:
         """
         logging.debug("MDSTrip::save() saving trip...")
+        query = self.generate_gql_insert()
         if self.is_valid():
-            query = self.generate_gql_insert()
             response = self.mds_http_graphql.request(query)
             logging.debug(
                 "MDSTrip::save() Request finished, response: %s" % str(response)
@@ -171,7 +200,8 @@ class MDSTrip:
                 response=response
             ) != 0
         else:
-            logging.debug("MDSTrip::save() trip marked as invalid...")
+            print(f"MDSTrip::save() trip marked as invalid: {self.trip_data['trip_id']}")
+            print(query)
             return False
 
     def exists(self, trip_id) -> bool:
@@ -190,6 +220,7 @@ class MDSTrip:
         :return str:
         """
         self.initialize_timestamps()
+        self.initialize_optional_fields()
         return Template(self.graphql_template_insert).substitute(self.trip_data)
 
     def generate_gql_search(self, trip_id) -> str:
@@ -230,20 +261,52 @@ class MDSTrip:
         """
         return self.trip_data.get(trip_key, None)
 
+    @staticmethod
+    def translate_timestamp(utc_unix_timestamp) -> str:
+        time = int(str(utc_unix_timestamp)[:10])
+        fmt = "%Y-%m-%d %H:%M:%S"
+        time_str = datetime.fromtimestamp(time).strftime(fmt)
+        timezone = reference.LocalTimezone().tzname(datetime.now())
+        return f"{time_str} {timezone}"
+
+    @staticmethod
+    def get_current_datetime_utc() -> str:
+        fmt = "%Y-%m-%d %H:%M:%S"
+        time_str = datetime.now().strftime(fmt)
+        timezone = reference.LocalTimezone().tzname(datetime.now())
+        return f"{time_str} {timezone}"
+
+    def initialize_optional_fields(self):
+        """
+        Initializes the optional fields in the database, if the fields are not populated yet.
+        :return:
+        """
+        if self.trip_data.get("standard_cost", None) is None:
+            self.set_trip_value("standard_cost", str(0))
+        if self.trip_data.get("actual_cost", None) is None:
+            self.set_trip_value("actual_cost", str(0))
+        if self.trip_data.get("publication_time", None) is None:
+            self.set_trip_value("publication_time", None)
+        if self.trip_data.get("parking_verification_url", None) is None:
+            self.set_trip_value("parking_verification_url", None)
+
     def initialize_timestamps(self):
         """
-        If the trip has start_time and end_time
+        If the trip has start_time, end_time and publication_time
         :return:
         """
         if self.is_valid():
-            start_time = int(str(self.trip_data["start_time"])[:10])
-            end_time = int(str(self.trip_data["end_time"])[:10])
-            fmt = "%Y-%m-%d %H:%M:%S"
-            start_time_dt = datetime.utcfromtimestamp(start_time)
-            end_time_dt = datetime.utcfromtimestamp(end_time).strftime(fmt)
+            start_time = self.translate_timestamp(self.trip_data["start_time"])
+            end_time = self.translate_timestamp(self.trip_data["end_time"])
+            self.set_trip_value("start_time", start_time)
+            self.set_trip_value("end_time", end_time)
 
-            self.set_trip_value("start_time", f"{start_time_dt} CST")
-            self.set_trip_value("end_time", f"{end_time_dt} CST")
+            raw_publication_time = self.trip_data.get("publication_time", None)
+            if raw_publication_time is not None:
+                publication_time = self.translate_timestamp(raw_publication_time)
+            else:
+                publication_time = self.get_current_datetime_utc()
+            self.set_trip_value("publication_time", publication_time)
 
     def initialize_points(self):
         # If the Trips data is valid (has proper format), let's initialize the trip's shapely points

@@ -36,8 +36,6 @@ class MDSGraphQLRequest:
             "x-hasura-admin-secret": f"{self.http_auth_token}"
         }
 
-        logging.debug(f"MDSGraphQLRequest::request() Headers: {str(headers)}")
-
         self.response = requests.post(
             self.endpoint,
             params=self.http_params,
