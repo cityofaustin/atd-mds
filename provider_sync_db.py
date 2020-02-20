@@ -190,6 +190,7 @@ def run(**kwargs):
             6,Data insertion completed with errors
             -6,Data insertion contained all errors
         """
+        final_status = 0
         if total_trips == trips_success and trips_error == 0:
             final_message = "Completed without errors"
             final_status = 5
