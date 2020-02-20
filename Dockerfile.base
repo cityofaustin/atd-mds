@@ -1,0 +1,35 @@
+#
+# Docker Base image for Python 3.8 with Rtree and Shapely
+#
+# To publish:
+#   - $ docker login
+#   - $ docker build -f Dockerfile.base --no-cache -t atddocker/atd-mds-etl-base:latest .
+#   - $ docker push atddocker/atd-mds-etl-base:latest
+#
+FROM python:3.8-alpine3.10 AS build
+
+WORKDIR /build
+RUN apk add --update build-base git cmake && \
+    git clone https://github.com/libspatialindex/libspatialindex.git && \
+    git clone https://github.com/libgeos/geos
+
+# We need to build to a specific directory prefix to copy as a multistage artifact...
+RUN cd /build/libspatialindex && \
+	cmake . -DCMAKE_INSTALL_PREFIX=/opt/libspatialindex \
+		    -DCMAKE_SYSTEM_NAME=Linux \
+			-DCMAKE_BUILD_TYPE=Release \
+			&& make && make install
+
+# Same for GEOS, but we've got to disable building tests before we build.
+RUN cd /build/geos && sed -i '1s;^;option(BUILD_TESTING "" OFF)\n;' CMakeLists.txt && \
+	cmake . -DCMAKE_INSTALL_PREFIX=/opt/libgeos \
+		    -DCMAKE_SYSTEM_NAME=Linux \
+			-DCMAKE_BUILD_TYPE=Release \
+			&& make && make install
+
+# We proceed with the python build
+FROM python:3.8-alpine3.10 AS app
+# Both libstdc++ and binutils for pip to be able to link all requirements correctly
+RUN apk add --update libstdc++ binutils
+# Copy artifacts from build into this stage
+COPY --from=build /opt/libgeos/ /opt/libspatialindex/ /usr/
