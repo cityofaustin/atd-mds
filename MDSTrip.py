@@ -1,5 +1,8 @@
 import logging
 import json
+import uuid
+import re
+
 from datetime import datetime
 from string import Template
 from pytz import reference
@@ -149,6 +152,24 @@ class MDSTrip:
         """
         return self.validator.errors
 
+    def int_to_uuid(self, integer_number):
+        """
+        Turns an integer into an uuid using the provider id as a template.
+        :param integer_number:
+        :return:
+        """
+        provider_id = self.trip_data.get("provider_id", None)
+        ms = str(uuid.UUID(bytes=int(f"{integer_number}").to_bytes(16, "big")))
+        i = re.search(r'[^0\-]', ms).start()
+        return f"{provider_id[:i]}{ms[i:]}"
+
+    def get_provider_name(self):
+        """
+        Returns the name of the provider, or None if not declared.
+        :return:
+        """
+        return self.trip_data.get("provider_name", None)
+
     @staticmethod
     def get_affected_rows(gql_key, response) -> int:
         """
@@ -198,6 +219,7 @@ class MDSTrip:
         :return str:
         """
         self.initialize_timestamps()
+        self.initialize_optional_fields()
         return Template(self.graphql_template_insert).substitute(self.trip_data)
 
     def generate_gql_search(self, trip_id) -> str:
@@ -246,6 +268,27 @@ class MDSTrip:
         timezone = reference.LocalTimezone().tzname(datetime.now())
         return f"{time_str} {timezone}"
 
+    @staticmethod
+    def get_current_datetime_utc() -> str:
+        fmt = "%Y-%m-%d %H:%M:%S"
+        time_str = datetime.now().strftime(fmt)
+        timezone = reference.LocalTimezone().tzname(datetime.now())
+        return f"{time_str} {timezone}"
+
+    def initialize_optional_fields(self):
+        """
+        Initializes the optional fields in the database, if the fields are not populated yet.
+        :return:
+        """
+        if self.trip_data.get("standard_cost", None) is None:
+            self.set_trip_value("standard_cost", str(0))
+        if self.trip_data.get("actual_cost", None) is None:
+            self.set_trip_value("actual_cost", str(0))
+        if self.trip_data.get("publication_time", None) is None:
+            self.set_trip_value("publication_time", None)
+        if self.trip_data.get("parking_verification_url", None) is None:
+            self.set_trip_value("parking_verification_url", None)
+
     def initialize_timestamps(self):
         """
         If the trip has start_time, end_time and publication_time
@@ -254,9 +297,14 @@ class MDSTrip:
         if self.is_valid():
             start_time = self.translate_timestamp(self.trip_data["start_time"])
             end_time = self.translate_timestamp(self.trip_data["end_time"])
-            publication_time = self.translate_timestamp(self.trip_data["publication_time"])
             self.set_trip_value("start_time", start_time)
             self.set_trip_value("end_time", end_time)
+
+            raw_publication_time = self.trip_data.get("publication_time", None)
+            if raw_publication_time is not None:
+                publication_time = self.translate_timestamp(raw_publication_time)
+            else:
+                publication_time = self.get_current_datetime_utc()
             self.set_trip_value("publication_time", publication_time)
 
     def initialize_points(self):
