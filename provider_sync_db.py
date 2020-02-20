@@ -191,21 +191,29 @@ def run(**kwargs):
             -6,Data insertion contained all errors
         """
         if total_trips == trips_success and trips_error == 0:
+            final_message = "Completed without errors"
             final_status = 5
 
         if trips_success > 0 and trips_error > 0:
+            final_message = "Completed with some errors"
             final_status = 6
 
         if total_trips == trips_error:
+            final_message = "Completed, but only with errors"
             final_status = -6
 
-        print("Updating schedule status...")
-        mds_schedule.set_schedule_status(
-            schedule_id=schedule_item["schedule_id"],
-            status_id=final_status,
-            records_processed=trips_success,
-            records_total=total_trips,
-        )
+        if final_status == 5:
+            print("Updating schedule status...")
+            mds_schedule.set_schedule_status(
+                schedule_id=schedule_item["schedule_id"],
+                status_id=final_status,
+                message=final_message,
+                records_processed=trips_success,
+                records_total=total_trips,
+            )
+        else:
+            print(f"The process finished with error_count: {trips_error}")
+            exit(1)
 
         print("As of this run: ")
         print(json.dumps(trips_report))
