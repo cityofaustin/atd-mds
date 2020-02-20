@@ -11,11 +11,8 @@ from MDSConfig import MDSConfig
 from MDSAWS import MDSAWS
 from MDSGraphQLRequest import MDSGraphQLRequest
 
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger()
-logger.disabled = False
+
+logging.disable(logging.DEBUG)
 
 # Let's initialize our configuration class
 mds_config = MDSConfig()
@@ -82,17 +79,17 @@ def run(**kwargs):
         print("Invalid settings, exiting.")
         exit(1)
 
-    logging.debug(f"Parsed Time Max: {mds_cli.parsed_date_time_max}")
-    logging.debug(f"Parsed Time Min: {mds_cli.parsed_date_time_min}")
-    logging.debug(f"Parsed Interval: {mds_cli.parsed_interval}")
+    print(f"Parsed Time Max: {mds_cli.parsed_date_time_max}")
+    print(f"Parsed Time Min: {mds_cli.parsed_date_time_min}")
+    print(f"Parsed Interval: {mds_cli.parsed_interval}")
 
     # Initialize the Schedule Class
     mds_schedule = mds_cli.initialize_schedule()
     # Gather schedule items:
     schedule = mds_schedule.get_schedule()
-    logging.debug(f"Schedule: {json.dumps(schedule)}")
+    print(f"Schedule: {json.dumps(schedule)}")
 
-    logging.debug("Initializing MDS Client ...")
+    print("Initializing MDS Client ...")
     # Initialize the MDS Client
     mds_client = MDSClient(
         config=mds_cli.mds_provider,
@@ -105,16 +102,15 @@ def run(**kwargs):
     all_trips = []
 
     if len(schedule) == 0:
-        logging.debug(f"There are no schedule items for '{mds_cli.provider}' ...")
+        print(f"There are no schedule items for '{mds_cli.provider}' ...")
         exit(1)
 
     # For each schedule item:
     for schedule_item in schedule:
-        logging.debug("Running with: ")
-        logging.debug(schedule_item)
+        print("Running with: " + json.dumps(schedule_item))
 
         # Build timezone aware interval...
-        logging.debug("Building timezone aware interval ...")
+        print("Building timezone aware interval ...")
         tz_time = MDSTimeZone(
             date_time_now=datetime(
                 schedule_item["year"],
@@ -132,7 +128,7 @@ def run(**kwargs):
         logging.debug("time_start (unix):\t%s" % (tz_time.get_time_start(utc=True, unix=True)))
         logging.debug("time_end   (unix):\t%s" % (tz_time.get_time_end(utc=True, unix=True)))
 
-        logging.debug("Getting trips ...")
+        print("Getting trips, please wait...")
         trips = mds_client.get_trips(
             start_time=tz_time.get_time_start(utc=True, unix=True),
             end_time=tz_time.get_time_end(utc=True, unix=True),
@@ -143,9 +139,18 @@ def run(**kwargs):
         )
         # Determine final file path
         s3_trips_file = data_path + "trips.json"
-        logging.debug("Saving Data to S3 ...")
+        print("Saving Data to S3 ...")
         mds_aws.save(json_document=json.dumps(trips), file_path=s3_trips_file)
-        logging.debug(f"File saved to {s3_trips_file}")
+        print(f"File saved to {s3_trips_file}")
+
+        print(f"Updating status for schedule_id: {schedule_item['schedule_id']}")
+        # The file was saved to S3 successfully...
+        mds_schedule.set_schedule_status(
+            schedule_id=schedule_item["schedule_id"],
+            status_id=2,
+            payload=s3_trips_file,
+            message="Successfully uploaded to S3"
+        )
 
         # If we need to save to file
         if file:
@@ -161,7 +166,7 @@ def run(**kwargs):
 
     # Gather timer end & output to console...
     hours, minutes, seconds = mds_cli.get_timer_end()
-    logging.debug(
+    print(
         "Overall process finished in: {:0>2}:{:0>2}:{:05.2f}".format(
             int(hours), int(minutes), seconds
         )
