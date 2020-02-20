@@ -13,11 +13,7 @@ from MDSAWS import MDSAWS
 from MDSPointInPolygon import MDSPointInPolygon
 from MDSGraphQLRequest import MDSGraphQLRequest
 
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger()
-logger.disabled = False
+logging.disable(logging.DEBUG)
 
 # Let's initialize our configuration class
 mds_config = MDSConfig()
@@ -88,23 +84,22 @@ def run(**kwargs):
         print("Invalid settings, exiting.")
         exit(1)
 
-    logging.debug(f"Parsed Time Max: {mds_cli.parsed_date_time_max}")
-    logging.debug(f"Parsed Time Min: {mds_cli.parsed_date_time_min}")
-    logging.debug(f"Parsed Interval: {mds_cli.parsed_interval}")
+    print(f"Parsed Time Max: {mds_cli.parsed_date_time_max}")
+    print(f"Parsed Time Min: {mds_cli.parsed_date_time_min}")
+    print(f"Parsed Interval: {mds_cli.parsed_interval}")
 
     # Retrieve the Schedule Class instance
     mds_schedule = mds_cli.initialize_schedule()
     # Gather schedule items:
     schedule = mds_schedule.get_schedule()
-    logging.debug(f"Schedule: {json.dumps(schedule)}")
+    print(f"Schedule: {json.dumps(schedule)}")
 
     # For each schedule hour block:
     for schedule_item in schedule:
-        logging.debug("Running with: ")
-        logging.debug(schedule_item)
+        print(f"Running with: {json.dumps(schedule_item)}")
 
         # Build timezone aware interval...
-        logging.debug("Building timezone aware interval ...")
+        print("Building timezone aware interval ...")
         tz_time = MDSTimeZone(
             date_time_now=datetime(
                 schedule_item["year"],
@@ -117,12 +112,12 @@ def run(**kwargs):
         )
 
         # Output generated time stamps on screen
-        logging.debug("Time Start (iso):\t%s" % tz_time.get_time_start())
-        logging.debug("Time End   (iso):\t%s" % tz_time.get_time_end())
+        print("Time Start (iso):\t%s" % tz_time.get_time_start())
+        print("Time End   (iso):\t%s" % tz_time.get_time_end())
         logging.debug("time_start (unix):\t%s" % (tz_time.get_time_start(utc=True, unix=True)))
         logging.debug("time_end   (unix):\t%s" % (tz_time.get_time_end(utc=True, unix=True)))
 
-        logging.debug("Loading S3 File ...")
+        print("Loading File from AWS S3...")
         # Determine data directory in S3
         data_path = mds_config.get_data_path(
             provider_name=mds_cli.provider, date=tz_time.get_time_start()
@@ -133,6 +128,8 @@ def run(**kwargs):
         trips = mds_aws.load(s3_trips_file)
 
         trips_count = len(trips["data"]["trips"])
+        print(f"File loaded with trips_count: {trips_count}")
+
         total_trips = 0
         trips_valid = 0
         trips_success = 0
@@ -140,7 +137,7 @@ def run(**kwargs):
 
         # For each trip, we need to build a trip object
         for trip in trips["data"]["trips"]:
-            # print(f'Processing trip: {trip["trip_id"]}')
+            print(f'Constructing trip: {trip["trip_id"]}')
 
             mds_trip = MDSTrip(
                 mds_config=mds_config,  # We pass the configuration class
