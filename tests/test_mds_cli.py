@@ -84,9 +84,9 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="jump",
+            provider="sample_co",
             interval=1,
-            time_max="2020-1-11-17",
+            time_max="2020-1-1-1",
             time_min=None,
         )
 
@@ -98,9 +98,9 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="jump",
+            provider="sample_co",
             interval=2,
-            time_max="2020-1-11-17",
+            time_max="2020-1-1-2",
             time_min=None,
         )
 
