@@ -148,6 +148,21 @@ def run(**kwargs):
                 mds_gql=mds_gql,  # We pass the HTTP GraphQL class
                 trip_data=trip  # We provide this individual trip data
             )
+
+            # VeoRide isn't fully MDS compliant, so we need to fix its data
+            if mds_trip.get_provider_name() == "VeoRide INC.":
+                # The trip_id is an integer, we need a uuid
+                current_trip_id = mds_trip.get_trip_value("trip_id")
+                new_trip_uuid = mds_trip.int_to_uuid(current_trip_id)
+                mds_trip.set_trip_value("trip_id", new_trip_uuid)
+                # The device_id is an integer, we need a uuid
+                current_device_id = mds_trip.get_trip_value("device_id")
+                new_device_id = mds_trip.int_to_uuid(current_device_id)
+                mds_trip.set_trip_value("device_id", str(new_device_id))
+                # The vehicle_id is an integer, it needs a string
+                current_veh_id = mds_trip.get_trip_value("vehicle_id")
+                mds_trip.set_trip_value("vehicle_id", str(current_veh_id))
+
             total_trips += 1
             # We can generate a GraphQL Query for debugging
             # gql = mds_trip.generate_gql_insert()
