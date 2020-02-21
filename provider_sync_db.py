@@ -130,6 +130,17 @@ def run(**kwargs):
         trips_count = len(trips["data"]["trips"])
         print(f"File loaded with trips_count: {trips_count}")
 
+        if trips_count == 0:
+            print("Updating schedule status to No Data")
+            mds_schedule.set_schedule_status(
+                schedule_id=schedule_item["schedule_id"],
+                status_id=7,
+                message="No trips per MDS payload",
+                records_processed=0,
+                records_total=0,
+            )
+            exit(0)
+
         total_trips = 0
         trips_valid = 0
         trips_success = 0
