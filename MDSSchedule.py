@@ -15,6 +15,7 @@ class MDSSchedule:
         "status_id",
         "time_min",
         "time_max",
+        "status_check",
     ]
 
     def __init__(
@@ -25,6 +26,7 @@ class MDSSchedule:
         status_id=0,
         time_max=None,
         time_min=None,
+        status_check=True,
     ):
         """
         Constructor for Schedule class.
@@ -34,6 +36,7 @@ class MDSSchedule:
         :param int status_id: The status id of the schedule we are looking for, default is 0
         :param datetime time_max: A datetime object that includes the maximum date and hour of the schedule
         :param datetime time_min: (Optional) A datetime object that indicates the minimum date and hour of the schedule
+        :param bool status_check: (Optional) If True, it will enforce the status_id filter.
         """
         logging.debug("MDSSchedule::__init__() Initializing MDSSchedule")
         # Initialization
@@ -43,6 +46,7 @@ class MDSSchedule:
         self.status_id = status_id
         self.time_max = time_max
         self.time_min = time_min
+        self.status_check = status_check
 
         # Now initialize query
         self._initialize_query()
@@ -66,14 +70,14 @@ class MDSSchedule:
         if not isinstance(self.time_min, datetime):
             self.time_min = self.time_max
 
-        logging.debug("MDSSchedule::_initialize_query() Generating query...")
+        logging.debug(f"MDSSchedule::_initialize_query() Generating query... status_check: {self.status_check}")
         self.query = Template(
             """
                     query fetchPendingSchedules {
                         api_schedule(
                             where: {
                                 provider: {provider_name: {_eq: "$provider_name"}},
-                                status_id: {_eq: $status_id},
+                                %STATUS_CHECK%
                                 
                                 date:{_gt:"$min_year-$min_month-$min_day $min_hour:00:00"}
                                 
@@ -91,7 +95,10 @@ class MDSSchedule:
                             status_id
                         }
                     }
-                """
+                """.replace(
+                "%STATUS_CHECK%",
+                ("", "status_id: {_eq: $status_id},")[self.status_check],
+            )
         ).substitute(
             {
                 "provider_name": self.provider_name,
@@ -106,6 +113,7 @@ class MDSSchedule:
                 "max_hour": f"{self.time_max.hour:02d}",
             }
         )
+        logging.debug(f"Query: {self.query}")
 
     @staticmethod
     def is_quotable_value(value) -> bool:
@@ -146,8 +154,7 @@ class MDSSchedule:
 
         additional_args = ""
         for k, v in kwargs.items():
-            if self.is_quotable_value(v) \
-                    and self.is_quoted(v) is False:
+            if self.is_quotable_value(v) and self.is_quoted(v) is False:
                 value = self.escape_quotes(v)
                 value = f'"{value}"'
             else:
