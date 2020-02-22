@@ -128,7 +128,8 @@ class MDSCli:
         """
         return self.parsed_interval if self.parsed_interval > 0 else 0
 
-    def initialize_schedule(self, status_id=0) -> MDSSchedule:
+    def initialize_schedule(self, status_id=0, status_check=True) -> MDSSchedule:
+        logging.debug(f"MDSCli::initialize_schedule(): status_check: {status_check}, status_id: {status_id}")
         # If we do not have a time-min, then we use the interval
         if not self.parsed_date_time_min:
             logging.debug(
@@ -157,6 +158,7 @@ class MDSCli:
                 time_min=time_max.get_time_start(),
                 time_max=time_max.get_time_end(),
                 status_id=status_id,
+                status_check=status_check,
             )
         else:
             logging.debug(f"Time-min is defined, interval cleared.")
@@ -178,6 +180,8 @@ class MDSCli:
                 provider_name=str(self.provider),
                 time_min=time_min.get_time_start(),
                 time_max=time_max.get_time_end(),
+                status_id=status_id,
+                status_check=status_check,
             )
 
         return self.mds_schedule
