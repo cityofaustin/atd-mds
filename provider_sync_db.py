@@ -146,6 +146,13 @@ def run(**kwargs):
         trips_success = 0
         trips_error = 0
 
+        # Keeps track of errors
+        error_payload = {
+            "error_count": 0,
+            "error_trip_ids": [],
+            "errors": [],
+        }
+
         # For each trip, we need to build a trip object
         for trip in trips["data"]["trips"]:
             mds_trip = MDSTrip(
@@ -173,22 +180,30 @@ def run(**kwargs):
             # We can generate a GraphQL Query for debugging
             # gql = mds_trip.generate_gql_insert()
             # If the trip is validated
-            if mds_trip.is_valid():
-                trips_valid += 1
-                if mds_trip.save():
-                    print(f'Processed trip ({total_trips}/{trips_count}): {trip["trip_id"]}')
-                    trips_success += 1
-                else:
-                    print(f'Error Processing trip: {trip["trip_id"]}')
-                    trips_error += 1
+            try:
+                valid_trip = mds_trip.is_valid()
+            except:
+                valid_trip = False
+
+            # Count if trip is valid
+            trips_valid += 1 if valid_trip else 0
+
+            # Try to save it
+            if mds_trip.save():
+                print(f'Processed trip ({total_trips}/{trips_count}): {trip["trip_id"]}')
+                trips_success += 1
             else:
-                print("Error when inserting trip: ")
-                print(json.dumps(mds_trip.get_validation_errors()))
-                gql = mds_trip.generate_gql_insert()
-                print(gql)
-                exit(1)
+                print(f'Error Inserting trip: {trip["trip_id"]}')
+                error_payload["errors"].append({
+                    "description": f'Error Processing trip: {trip["trip_id"]}',
+                    "graphql": mds_trip.generate_gql_insert(),
+                    "response": mds_trip.response
+                })
+                error_payload["error_trip_ids"].append(trip["trip_id"])
+                trips_error += 1
 
         trips_report = {
+            "message": "Final Report",
             "total_trips": total_trips,
             "trips_valid": trips_valid,
             "trips_success": trips_success,
@@ -203,29 +218,41 @@ def run(**kwargs):
         """
         final_status = 0
         if total_trips == trips_success and trips_error == 0:
-            final_message = "Completed without errors"
+            trips_report["message"] = "Completed without errors"
             final_status = 5
 
         if trips_success > 0 and trips_error > 0:
-            final_message = "Completed with some errors"
+            trips_report["message"] = "Completed with some errors"
             final_status = 6
 
         if total_trips == trips_error:
-            final_message = "Completed, but only with errors"
+            trips_report["message"] = "Completed, but only with errors"
             final_status = -6
 
+        # If no errors, change trips message and mark for no rerun.
         if final_status == 5:
-            print("Updating schedule status...")
-            mds_schedule.set_schedule_status(
-                schedule_id=schedule_item["schedule_id"],
-                status_id=final_status,
-                message=final_message,
-                records_processed=trips_success,
-                records_total=total_trips,
-            )
+            trips_report["message"] = "The process finished without errors."
+            error_payload["error_count"] = 0
+            rerun_flag = False
+
+        # If we do have errors, mark for rerun
         else:
-            print(f"The process finished with error_count: {trips_error}")
-            exit(1)
+            trips_report["message"] = f"The process finished with error_count: {trips_error}"
+            error_payload["error_count"] = trips_error
+            rerun_flag = True
+
+        print("Updating schedule status...")
+        mds_schedule.set_schedule_status(
+            schedule_id=schedule_item["schedule_id"],
+            status_id=final_status,
+            message=json.dumps(json.dumps(trips_report)),
+            records_processed=trips_success,
+            records_total=total_trips,
+            payload_trips_count=len(trips["data"]["trips"]),
+            records_error_count=trips_error,
+            error_payload=json.dumps(json.dumps(error_payload)),
+            rerun_flag=rerun_flag
+        )
 
         print("As of this run: ")
         print(json.dumps(trips_report))

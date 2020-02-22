@@ -17,7 +17,15 @@ class MDSSchedule:
         "time_max",
     ]
 
-    def __init__(self, mds_config, mds_gql, provider_name, status_id=0, time_max=None, time_min=None):
+    def __init__(
+        self,
+        mds_config,
+        mds_gql,
+        provider_name,
+        status_id=0,
+        time_max=None,
+        time_min=None,
+    ):
         """
         Constructor for Schedule class.
         :param MDSConfig mds_config: The configuration class where we can gather our endpoint
@@ -47,7 +55,9 @@ class MDSSchedule:
         logging.debug("MDSSchedule::_initialize_query() Initializing Query")
 
         if not isinstance(self.time_max, datetime):
-            logging.debug("MDSSchedule::_initialize_query() time_min not a valid datetime object")
+            logging.debug(
+                "MDSSchedule::_initialize_query() time_min not a valid datetime object"
+            )
             raise Exception(
                 "MDSSchedule::_load_time() time_max is expected to be a datetime"
             )
@@ -57,7 +67,8 @@ class MDSSchedule:
             self.time_min = self.time_max
 
         logging.debug("MDSSchedule::_initialize_query() Generating query...")
-        self.query = Template("""
+        self.query = Template(
+            """
                     query fetchPendingSchedules {
                         api_schedule(
                             where: {
@@ -80,18 +91,21 @@ class MDSSchedule:
                             status_id
                         }
                     }
-                """).substitute({
-                    "provider_name": self.provider_name,
-                    "status_id": self.status_id,
-                    "min_year": self.time_min.year,
-                    "min_month": self.time_min.month,
-                    "min_day": self.time_min.day,
-                    "min_hour": f"{self.time_min.hour:02d}",
-                    "max_year": self.time_max.year,
-                    "max_month": self.time_max.month,
-                    "max_day": self.time_max.day,
-                    "max_hour": f"{self.time_max.hour:02d}",
-                })
+                """
+        ).substitute(
+            {
+                "provider_name": self.provider_name,
+                "status_id": self.status_id,
+                "min_year": self.time_min.year,
+                "min_month": self.time_min.month,
+                "min_day": self.time_min.day,
+                "min_hour": f"{self.time_min.hour:02d}",
+                "max_year": self.time_max.year,
+                "max_month": self.time_max.month,
+                "max_day": self.time_max.day,
+                "max_hour": f"{self.time_max.hour:02d}",
+            }
+        )
 
     @staticmethod
     def is_quotable_value(value) -> bool:
@@ -115,7 +129,11 @@ class MDSSchedule:
         :param str value: The string that needs to be quoted
         :return str:
         """
-        return str(value).replace("\"", "\\\"")
+        return str(value).replace('"', '\\"')
+
+    @staticmethod
+    def is_quoted(value) -> bool:
+        return True if value[-1:] == '"' and value[:1] == '"' else False
 
     def get_schedule_update_status_query(self, schedule_id, status_id, **kwargs) -> str:
         """
@@ -128,14 +146,20 @@ class MDSSchedule:
 
         additional_args = ""
         for k, v in kwargs.items():
-            if self.is_quotable_value(v):
+            if self.is_quotable_value(v) \
+                    and self.is_quoted(v) is False:
                 value = self.escape_quotes(v)
-                value = f"\"{value}\""
+                value = f'"{value}"'
             else:
-                value = v
+                if str(v) == "True" or str(v) == "False":
+                    value = str(v).lower()
+                else:
+                    value = v
+            # value = value.replace('\\\\\\"None\\\\\\"', 'null')
             additional_args += f"\n                    {k}: {value},"
 
-        return Template("""
+        return Template(
+            """
             mutation mutationUpdateScheduleStatus {
                 update_api_schedule(
                 where: {
@@ -147,11 +171,14 @@ class MDSSchedule:
                 }
                 ){ affected_rows }
             }
-        """).substitute({
-            "schedule_id": str(schedule_id),
-            "status_id": str(status_id),
-            "additional_args": additional_args,
-        })
+        """
+        ).substitute(
+            {
+                "schedule_id": str(schedule_id),
+                "status_id": str(status_id),
+                "additional_args": additional_args,
+            }
+        )
 
     def set_schedule_status(self, schedule_id, status_id, **kwargs) -> str:
         """
@@ -163,9 +190,7 @@ class MDSSchedule:
         :return int:
         """
         query = self.get_schedule_update_status_query(
-            schedule_id=schedule_id,
-            status_id=status_id,
-            **kwargs,
+            schedule_id=schedule_id, status_id=status_id, **kwargs,
         )
         response = self.mds_http_graphql.request(query)
         return response["data"]["update_api_schedule"]["affected_rows"]
@@ -189,7 +214,8 @@ class MDSSchedule:
         Returns a dictionary with the response from the API endpoint
         :return dict:
         """
-        query = Template("""
+        query = Template(
+            """
             query getScheduleById {
               api_schedule(
                 where: {
@@ -209,8 +235,7 @@ class MDSSchedule:
                     }
                 }
             }
-        """).substitute({
-            "schedule_id": str(schedule_id)
-        })
+        """
+        ).substitute({"schedule_id": str(schedule_id)})
         print(query)
         return self.mds_http_graphql.request(query)["data"]["api_schedule"]
