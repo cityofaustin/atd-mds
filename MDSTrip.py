@@ -10,6 +10,7 @@ from pytz import reference
 from MDSPointInPolygon import MDSPointInPolygon
 from cerberus import Validator
 
+
 class MDSTrip:
     __slots__ = [
         "mds_config",
@@ -18,6 +19,8 @@ class MDSTrip:
         "mds_graphql_query",
         "trip_data",
         "validator",
+        "query",
+        "response",
     ]
 
     validation_schema = {
@@ -29,27 +32,27 @@ class MDSTrip:
         "trip_id": {"type": "string"},
         "propulsion_type": {"type": "list"},
         "route": {"type": "dict"},
-        "trip_duration": {"type": "integer"},
-        "trip_distance": {"type": "integer"},
-        "accuracy": {"type": "integer"},
-        "start_time": {"type": "integer"},
-        "end_time": {"type": "integer"},
-        "standard_cost": {"required": False, "type": "integer"},
-        "actual_cost": {"required": False, "type": "integer"},
-        "publication_time": {"required": False, "type": "integer"},
-        "parking_verification_url": {"required": False, "type": "string"},
+        "trip_duration": {"type": "number"},
+        "trip_distance": {"type": "number"},
+        "accuracy": {"type": "number"},
+        "start_time": {"type": "number"},
+        "end_time": {"type": "number"},
+        "standard_cost": {"nullable": True, "required": False, "type": "number"},
+        "actual_cost": {"nullable": True, "required": False, "type": "number"},
+        "publication_time": {"nullable": True, "required": False, "type": "number"},
+        "parking_verification_url": {"nullable": True, "required": False, "type": "string"},
         # Coordinates
-        "start_latitude": {"type": "float"},
-        "start_longitude": {"type": "float"},
-        "end_latitude": {"type": "float"},
-        "end_longitude": {"type": "float"},
+        "start_latitude": {"type": "number"},
+        "start_longitude": {"type": "number"},
+        "end_latitude": {"type": "number"},
+        "end_longitude": {"type": "number"},
         # Polygon IDs
-        "council_district_start": {"type": "string"},
-        "council_district_end": {"type": "string"},
-        "orig_cell_id": {"type": "string"},
-        "dest_cell_id": {"type": "string"},
-        "census_geoid_start": {"type": "string"},
-        "census_geoid_end": {"type": "string"},
+        "council_district_start": {"nullable": True, "required": False, "type": "string"},
+        "council_district_end": {"nullable": True, "required": False, "type": "string"},
+        "orig_cell_id": {"nullable": True, "required": False, "type": "string"},
+        "dest_cell_id": {"nullable": True, "required": False, "type": "string"},
+        "census_geoid_start": {"nullable": True, "required": False, "type": "string"},
+        "census_geoid_end": {"nullable": True, "required": False, "type": "string"},
     }
 
     graphql_template_insert = """
@@ -130,6 +133,9 @@ class MDSTrip:
         self.mds_http_graphql = mds_gql
         # Initializes the cerberus validator
         self.validator = Validator(self.validation_schema, require_all=True)
+        # HTTP Query and Response
+        self.query = {}
+        self.response = {}
         # Then initialize our trip data
         self.trip_data = trip_data
         self.initialize_points()
@@ -191,21 +197,22 @@ class MDSTrip:
         logging.debug("MDSTrip::save() saving trip...")
 
         if self.is_valid():
-            query = self.generate_gql_insert()
-            response = self.mds_http_graphql.request(query)
+            self.query = self.generate_gql_insert()
+            self.response = self.mds_http_graphql.request(self.query)
             logging.debug(
-                "MDSTrip::save() Request finished, response: %s" % str(response)
+                "MDSTrip::save() Request finished, response: %s" % str(self.response)
             )
             return self.get_affected_rows(
                 gql_key="insert_api_trips",
-                response=response
+                response=self.response
             ) != 0
         else:
-            query = self.generate_gql_insert()
+            self.query = self.generate_gql_insert()
+            self.response = self.get_validation_errors()
             print(f"MDSTrip::save() trip marked as invalid: {self.trip_data['trip_id']}")
-            print(query)
+            print(self.query)
             print("Errors: ")
-            print(self.get_validation_errors())
+            print(self.response)
             return False
 
     def exists(self, trip_id) -> bool:
