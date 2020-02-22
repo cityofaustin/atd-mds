@@ -45,6 +45,11 @@ mds_gql = MDSGraphQLRequest(
     help="Use this flag to use a specific input file.",
 )
 @click.option(
+    "--force",
+    is_flag=True,
+    help="Forces a schedule to run by changing its status to 0 before running.",
+)
+@click.option(
     "--interval",
     default=None,
     help="Relative to the maximum time for trip end, an interval window "
@@ -76,6 +81,7 @@ def run(**kwargs):
     )
 
     file = kwargs.get("file", None)
+    force = kwargs.get("force", False)
 
     print(f"Settings: {str(mds_cli.get_config())}")
 
@@ -89,7 +95,12 @@ def run(**kwargs):
     print(f"Parsed Interval: {mds_cli.parsed_interval}")
 
     # Retrieve the Schedule Class instance
-    mds_schedule = mds_cli.initialize_schedule(status_id=2)
+    mds_schedule = mds_cli.initialize_schedule(
+        # Default status, we expect 2 = Uploaded to S3
+        status_id=2,
+        # Do not check for status if force is enabled
+        status_check=(True, False)[force]
+    )
     # Gather schedule items:
     schedule = mds_schedule.get_schedule()
     print(f"Schedule: {json.dumps(schedule)}")
