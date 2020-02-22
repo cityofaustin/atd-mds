@@ -113,7 +113,6 @@ class MDSSchedule:
                 "max_hour": f"{self.time_max.hour:02d}",
             }
         )
-        print(self.query)
 
     @staticmethod
     def is_quotable_value(value) -> bool:
