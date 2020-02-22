@@ -37,6 +37,9 @@ ATD_MDS_DOCKER_IMAGE = "atddocker/atd-mds-etl:local"
 
 @click.command()
 @click.option(
+    "--env-file", default=None, help="The environment file to use.",
+)
+@click.option(
     "--provider", default=None, help="The provider's name",
 )
 @click.option(
@@ -73,6 +76,12 @@ def run(**kwargs):
     )
 
     force = kwargs.get("force", False)
+    env_file = kwargs.get("env_file", None)
+
+    # Obtain the path to the env file for the docker image
+    if env_file is None:
+        print("Error: Env file not provided, be sure to use the flag: '--env-file ~/path/to/file.env'")
+        exit(1)
 
     # Check the CLI settings...
     if mds_cli.valid_settings() is False:
@@ -96,27 +105,31 @@ def run(**kwargs):
     # Gather schedule items:
     schedule = mds_schedule.get_schedule()
     # print(f"Schedule: {json.dumps(schedule)}")
-    print(f"Total items in schedule: {len(schedule)}")
-
+    print(f"Total items in schedule: {len(schedule)} (blocks)")
+    processes = ["extract", "sync_db", "sync_socrata"]
+    total_blocks = len(schedule)
+    current_block = 0
     # For each schedule hour block:
     for sb in schedule:
+        current_block += 1
         block = f'{sb["year"]}-{sb["month"]}-{sb["day"]}-{sb["hour"]}'
-        log = f"{mds_cli.provider}-{block}.log"
-        error_log = f"{mds_cli.provider}-{block}-error.log"
         force_enabled = ("", "--force")[force]
-        for process in ["extract", "sync_db", "sync_socrata"]:
-            command = f'docker run -it --rm {ATD_MDS_DOCKER_IMAGE} ./provider_{process}.py --provider "{mds_cli.provider}" --time-max "{block}" --interval 1 {force_enabled} >> ./logs/{log} 2> ./logs/{error_log}'
+        for process in processes:
+            log = f"{mds_cli.provider}-{block}-{process}.log"
+            error_log = f"{mds_cli.provider}-{block}-{process}-error.log"
+            command = f'docker run -it --env-file {env_file} --rm {ATD_MDS_DOCKER_IMAGE} ./provider_{process}.py --provider "{mds_cli.provider}" --time-max "{block}" --interval 1 {force_enabled} >> ./logs/{log} 2> ./logs/{error_log}'
             print(
                 f"""
-    Running Block:
-        Process: {process}
+    Running Block ({current_block}/{total_blocks}):
+        Process: {process} {processes.index(process)+1}/3
         Schedule: {sb}
         Block: '{block}' (1hr)
         Log: $ tail ./{log}
         Command: '{command}' 
             """
             )
-            # os.system('ls -l')
+            os.system(command)
+            command = None
 
 
 if __name__ == "__main__":
