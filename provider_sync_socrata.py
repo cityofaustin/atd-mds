@@ -45,6 +45,11 @@ mds_gql = MDSGraphQLRequest(
     help="Use this flag to use a specific input file.",
 )
 @click.option(
+    "--force",
+    is_flag=True,
+    help="Forces a schedule to run by changing its status to 0 before running.",
+)
+@click.option(
     "--interval",
     default=None,
     help="Relative to the maximum time for trip end, an interval window "
