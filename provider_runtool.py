@@ -115,8 +115,8 @@ def run(**kwargs):
         block = f'{sb["year"]}-{sb["month"]}-{sb["day"]}-{sb["hour"]}'
         force_enabled = ("", "--force")[force]
         for process in processes:
-            log = f"{mds_cli.provider}-{block}-{process}.log"
-            error_log = f"{mds_cli.provider}-{block}-{process}-error.log"
+            log = f"{mds_cli.provider}/{mds_cli.provider}-{block}-{process}.log"
+            error_log = f"{mds_cli.provider}/{mds_cli.provider}-{block}-{process}-error.log"
             command = f'docker run -it --env-file {env_file} --rm {ATD_MDS_DOCKER_IMAGE} ./provider_{process}.py --provider "{mds_cli.provider}" --time-max "{block}" --interval 1 {force_enabled} >> ./logs/{log} 2> ./logs/{error_log}'
             print(
                 f"""
