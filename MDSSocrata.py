@@ -1,6 +1,4 @@
-import logging
-import json
-from datetime import datetime
+from dateutil import parser, tz
 from string import Template
 
 from sodapy import Socrata
@@ -122,24 +120,7 @@ class MDSSocrata:
             time_min=time_min,
             time_max=time_max
         )
-        print(query)
-        data = json.dumps(self.mds_http_graphql.request(query))
-        for key in [
-            "trip_id",
-            "device_id",
-            "vehicle_type",
-            "trip_duration",
-            "trip_distance",
-            "start_time",
-            "end_time",
-            "modified_date",
-            "council_district_start",
-            "council_district_end",
-            "census_geoid_start",
-            "census_geoid_end",
-        ]:
-            data = data.replace(key, f":{key}")
-        return json.loads(data)
+        return self.mds_http_graphql.request(query)
 
     def get_config(self) -> dict:
         """
@@ -154,8 +135,31 @@ class MDSSocrata:
         :param dict data: The data to be saved unto socrata.
         :return dict:
         """
+        x = list(map(self.parse_datetimes, data))
         if self.client is not None:
-            return self.client.upsert(self.mds_socrata_dataset, data)
+            return self.client.upsert(self.mds_socrata_dataset, x)
         else:
             raise Exception("The socrata client is not initialized correctly, check your API credentials.")
 
+    def parse_datetimes(self, data) -> dict:
+        """
+        Parses the PostgreSQL datetime with timezone into an insertable
+        socrata timestamp in CST time. It also adds necessary fields,
+        such as year, month, hour and day of the week.
+        :param data:
+        :return:
+        """
+        fmt = "%Y-%m-%dT%H:%M:%S"
+        end_time = self.datetime_to_cst(data["end_time"])
+        data["start_time"] = self.datetime_to_cst(data["start_time"]).strftime(fmt)
+        data["end_time"] = end_time.strftime(fmt)
+        data["modified_date"] = self.datetime_to_cst(data["modified_date"]).strftime(fmt)
+        data["year"] = end_time.year
+        data["month"] = end_time.month
+        data["hour"] = end_time.hour
+        data["day_of_week"] = end_time.weekday()
+        return data
+
+    @staticmethod
+    def datetime_to_cst(timestamp):
+        return parser.parse(timestamp).astimezone(tz.gettz('CST'))
