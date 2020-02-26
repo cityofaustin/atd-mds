@@ -1,5 +1,5 @@
 import logging
-
+import json
 from datetime import datetime
 from string import Template
 
@@ -13,10 +13,9 @@ class MDSSocrata:
         "mds_config",
         "mds_http_graphql",
         "mds_socrata_dataset",
-        "records_per_page",
+        "provider_name",
         "query",
         "client",
-        "data",
     ]
 
     def __del__(self):
@@ -46,15 +45,18 @@ class MDSSocrata:
 
     def __init__(
             self,
+            provider_name,
             mds_config,
             mds_gql
     ):
         """
         Constructor for the init class.
+        :param str provider_name: The name of the provider
         :param MDSConfig mds_config: The configuration class where we can gather our endpoint
         :param MDSGraphQLRequest mds_gql: The http graphql class we need to make requests
         :return:
         """
+        self.provider_name = provider_name
         self.mds_config = mds_config
         self.mds_http_graphql = mds_gql
         self.mds_socrata_dataset = self.mds_config.get_setting("SOCRATA_DATASET", None)
@@ -65,12 +67,11 @@ class MDSSocrata:
             password=self.mds_config.get_setting("SOCRATA_KEY_SECRET", None),
             timeout=20
         )
-        self.records_per_page = 6000
-        self.data = None
         self.query = Template("""
         query getTrips {
           api_trips(
                 where: {
+                provider: { provider_name: { _eq: "$provider_name" }}
                 end_time: { _gte: "$time_min" },
                 _and: { start_time: { _lt: "$time_max" }}
               }
@@ -94,34 +95,51 @@ class MDSSocrata:
     def get_query(self, time_min, time_max) -> str:
         """
         Returns a string with the new query based on limit and offset.
-        :param str limit:
-        :param str offset:
+        :param str time_min: The minimum time the trip ended
+        :param str time_max: The maximum time the trip ended
         :return str:
         """
+        if isinstance(self.provider_name, str) is False:
+            raise Exception("provider_name must be a string")
         if isinstance(time_min, str) is False:
             raise Exception("time_min must be a sql datetime string")
         if isinstance(time_max, str) is False:
             raise Exception("time_max must be a sql datetime string")
-        return self.query.substitute(time_min=time_min, time_max=time_max)
+        return self.query.substitute(
+            provider_name=self.provider_name,
+            time_min=time_min,
+            time_max=time_max
+        )
 
-    def get_data(self, records, page) -> dict:
+    def get_data(self, time_min, time_max) -> dict:
         """
         Gathers data from the API endpoint
-        :param int records:
-        :param int page:
+        :param str time_min:
+        :param str time_max:
         :return dict:
         """
-        query = self.get_query(records, records*page)
-        return self.mds_http_graphql.request(query)
-
-    def load_data(self, data) -> bool:
-        """
-        Loads the data and prepares for upsert.
-        :param data:
-        :return bool:
-        """
-        self.data = data
-        return False
+        query = self.get_query(
+            time_min=time_min,
+            time_max=time_max
+        )
+        print(query)
+        data = json.dumps(self.mds_http_graphql.request(query))
+        for key in [
+            "trip_id",
+            "device_id",
+            "vehicle_type",
+            "trip_duration",
+            "trip_distance",
+            "start_time",
+            "end_time",
+            "modified_date",
+            "council_district_start",
+            "council_district_end",
+            "census_geoid_start",
+            "census_geoid_end",
+        ]:
+            data = data.replace(key, f":{key}")
+        return json.loads(data)
 
     def get_config(self) -> dict:
         """
@@ -130,13 +148,14 @@ class MDSSocrata:
         """
         return self.mds_config.get_config()
 
-    def save(self) -> dict:
+    def save(self, data) -> dict:
         """
         Upserts the data into Socrata
-        :return bool:
+        :param dict data: The data to be saved unto socrata.
+        :return dict:
         """
         if self.client is not None:
-            return self.client.upsert(self.mds_socrata_dataset, self.data)
+            return self.client.upsert(self.mds_socrata_dataset, data)
         else:
             raise Exception("The socrata client is not initialized correctly, check your API credentials.")
 
