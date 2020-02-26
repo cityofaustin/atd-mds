@@ -51,6 +51,26 @@ ATD_MDS_DOCKER_IMAGE = "atddocker/atd-mds-etl:local"
     help="Forces a schedule to run by changing its status to 0 before running.",
 )
 @click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Prints the commands on screen, but does not execute.",
+)
+@click.option(
+    "--no-sync-db",
+    is_flag=True,
+    help="Removes sync-db as part of the process.",
+)
+@click.option(
+    "--no-sync-socrata",
+    is_flag=True,
+    help="Removes sync-socrata as part of the process.",
+)
+@click.option(
+    "--no-extract",
+    is_flag=True,
+    help="Removes extraction as part of the process.",
+)
+@click.option(
     "--time-min",
     default=None,
     help="The minimum time where the trip ended in format: 'yyyy-mm-dd-hh'",
@@ -77,6 +97,11 @@ def run(**kwargs):
 
     force = kwargs.get("force", False)
     env_file = kwargs.get("env_file", None)
+
+    no_extact = kwargs.get("no_extract", False)
+    no_syncdb = kwargs.get("no_sync_db", False)
+    no_syncsoc = kwargs.get("no_sync_socrata", False)
+    dry_run = kwargs.get("dry_run", False)
 
     # Obtain the path to the env file for the docker image
     if env_file is None:
@@ -107,6 +132,15 @@ def run(**kwargs):
     # print(f"Schedule: {json.dumps(schedule)}")
     print(f"Total items in schedule: {len(schedule)} (blocks)")
     processes = ["extract", "sync_db", "sync_socrata"]
+
+    # Enforce --no-(*) flags to omit certain processes
+    if no_extact:
+        processes.remove("extract")
+    if no_syncdb:
+        processes.remove("sync_db")
+    if no_syncsoc:
+        processes.remove("sync_socrata")
+
     total_blocks = len(schedule)
     current_block = 0
     # For each schedule hour block:
@@ -114,21 +148,33 @@ def run(**kwargs):
         current_block += 1
         block = f'{sb["year"]}-{sb["month"]}-{sb["day"]}-{sb["hour"]}'
         force_enabled = ("", "--force")[force]
+
         for process in processes:
             log = f"{mds_cli.provider}/{mds_cli.provider}-{block}-{process}.log"
             error_log = f"{mds_cli.provider}/{mds_cli.provider}-{block}-{process}-error.log"
             command = f'docker run -it --env-file {env_file} --rm {ATD_MDS_DOCKER_IMAGE} ./provider_{process}.py --provider "{mds_cli.provider}" --time-max "{block}" --interval 1 {force_enabled} >> ./logs/{log} 2> ./logs/{error_log}'
-            print(
-                f"""
-    Running Block ({current_block}/{total_blocks}):
-        Process: {process} {processes.index(process)+1}/3
-        Schedule: {sb}
-        Block: '{block}' (1hr)
-        Log: $ tail ./{log}
-        Command: '{command}' 
-            """
-            )
-            os.system(command)
+
+            # Socrata Sync does not support need the --force flag
+            if process == "sync_socrata":
+                command = command.replace("--force", "")
+
+            # Check if this is a dry-run
+            if dry_run is False:
+                print(
+                    f"""
+                    Running Block ({current_block}/{total_blocks}):
+                        Process: {process} {processes.index(process) + 1}/3
+                        Schedule: {sb}
+                        Block: '{block}' (1hr)
+                        Log: $ tail ./{log}
+                        Command: '{command}' 
+                    """
+                )
+                os.system(command)
+
+            else:
+                print(f"(dry)$ {command}\n")
+            # Clear the command, for good measure.
             command = None
 
 
