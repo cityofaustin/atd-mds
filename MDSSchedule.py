@@ -244,5 +244,4 @@ class MDSSchedule:
             }
         """
         ).substitute({"schedule_id": str(schedule_id)})
-        print(query)
         return self.mds_http_graphql.request(query)["data"]["api_schedule"]
