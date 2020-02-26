@@ -4,7 +4,6 @@ from string import Template
 from sodapy import Socrata
 from MDSConfig import MDSConfig
 
-
 class MDSSocrata:
 
     __slots__ = [
@@ -135,9 +134,10 @@ class MDSSocrata:
         :param dict data: The data to be saved unto socrata.
         :return dict:
         """
-        x = list(map(self.parse_datetimes, data))
+        data = list(map(self.parse_datetimes, data))
+        data = list(map(self.check_geos_data, data))
         if self.client is not None:
-            return self.client.upsert(self.mds_socrata_dataset, x)
+            return self.client.upsert(self.mds_socrata_dataset, data)
         else:
             raise Exception("The socrata client is not initialized correctly, check your API credentials.")
 
@@ -158,6 +158,29 @@ class MDSSocrata:
         data["month"] = end_time.month
         data["hour"] = end_time.hour
         data["day_of_week"] = end_time.weekday()
+        return data
+
+    @staticmethod
+    def check_geos_data(data) -> dict:
+        """
+        Parses the PostgreSQL datetime with timezone into an insertable
+        socrata timestamp in CST time. It also adds necessary fields,
+        such as year, month, hour and day of the week.
+        :param data:
+        :return:
+        """
+        geos_fields = [
+            "council_district_start",
+            "council_district_end",
+            "census_geoid_start",
+            "census_geoid_end",
+        ]
+
+        for field in geos_fields:
+            if data[field] is None or data[field] == "None":
+                data[field] = 0
+            else:
+                data[field] = data.get(field, 0)
         return data
 
     @staticmethod
