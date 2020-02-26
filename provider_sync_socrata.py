@@ -12,17 +12,19 @@ The application requires the requests, sodapy and atd-mds-client libraries:
     https://pypi.org/project/atd-mds-client/
 """
 
+import click
 import json
+import logging
 from datetime import datetime
 
-import click
 from mds import *
-
 from MDSCli import MDSCli
 from MDSConfig import MDSConfig
 from MDSAWS import MDSAWS
 from MDSGraphQLRequest import MDSGraphQLRequest
 from MDSSocrata import MDSSocrata
+
+logging.disable(logging.DEBUG)
 
 # Let's initialize our configuration class
 mds_config = MDSConfig()
@@ -118,8 +120,6 @@ def run(**kwargs):
         # Output generated time stamps on screen
         print("Time Start (cst):\t%s" % tz_time.get_time_start(utc=False))
         print("Time End   (cst):\t%s" % tz_time.get_time_end(utc=False))
-        print("Time Start (utc):\t%s" % tz_time.get_time_start(utc=True))
-        print("Time End   (utc):\t%s" % tz_time.get_time_end(utc=True))
 
         mds_socrata = MDSSocrata(
             provider_name=mds_cli.provider,
@@ -130,10 +130,24 @@ def run(**kwargs):
         trips = mds_socrata.get_data(
             time_min=str(tz_time.get_time_start(utc=False)),
             time_max=str(tz_time.get_time_end(utc=False))
-        )["data"]["api_trips"]
+        )
 
-        print(json.dumps(trips))
-        mds_socrata.save(data=trips)
+        saved = mds_socrata.save(data=trips["data"]["api_trips"])
+
+        total_errors = saved.get("Errors", -1)
+        final_status = -8
+        if total_errors == 0:
+            print("Socrata updates successful: %s" % str(saved))
+            final_status = 8
+        else:
+            print("Socrata updates failed: %s" % str(saved))
+
+        print("Updating schedule status...")
+        mds_schedule.set_schedule_status(
+            schedule_id=schedule_item["schedule_id"],
+            status_id=final_status,
+            socrata_status=json.dumps(saved)
+        )
 
 
 if __name__ == "__main__":
