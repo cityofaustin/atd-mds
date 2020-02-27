@@ -172,3 +172,10 @@ class TestMDSSocrata:
         expected = datetime(2020, 1, 1, 2, 0, 0)
         result = mds_socrata.round_nearest_15th(test)
         assert result == expected
+
+    def test_time_rounding_fail_t1(self):
+        try:
+            mds_socrata.round_nearest_15th(None)
+            assert False
+        except:
+            assert True
