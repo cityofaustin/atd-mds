@@ -112,3 +112,63 @@ class TestMDSSocrata:
             assert False
         except:
             assert True
+
+    def test_time_rounding_success_t1(self):
+        test = datetime(2020, 1, 1, 1, 13, 0)
+        expected = datetime(2020, 1, 1, 1, 15, 0)
+        result = mds_socrata.round_nearest_15th(test)
+        assert result == expected
+
+    def test_time_rounding_success_t2(self):
+        test = datetime(2020, 1, 1, 1, 31, 0)
+        expected = datetime(2020, 1, 1, 1, 30, 0)
+        result = mds_socrata.round_nearest_15th(test)
+        assert result == expected
+
+    def test_time_rounding_success_t3(self):
+        test = datetime(2020, 1, 1, 1, 49, 0)
+        expected = datetime(2020, 1, 1, 1, 45, 0)
+        result = mds_socrata.round_nearest_15th(test)
+        assert result == expected
+
+    def test_time_rounding_success_t4(self):
+        test = datetime(2020, 1, 1, 1, 59, 0)
+        expected = datetime(2020, 1, 1, 2, 0, 0)
+        result = mds_socrata.round_nearest_15th(test)
+        assert result == expected
+
+    def test_time_rounding_success_t5(self):
+        test = datetime(2020, 1, 1, 1, 52, 0)
+        expected = datetime(2020, 1, 1, 1, 45, 0)
+        result = mds_socrata.round_nearest_15th(test)
+        assert result == expected
+
+    def test_time_rounding_success_t6(self):
+        test = datetime(2020, 1, 1, 1, 53, 0)
+        expected = datetime(2020, 1, 1, 2, 0, 0)
+        result = mds_socrata.round_nearest_15th(test)
+        assert result == expected
+
+    def test_time_rounding_success_t7(self):
+        test = datetime(2020, 1, 1, 1, 1, 0)
+        expected = datetime(2020, 1, 1, 1, 0, 0)
+        result = mds_socrata.round_nearest_15th(test)
+        assert result == expected
+
+    def test_time_rounding_success_t8(self):
+        test = datetime(2020, 1, 1, 1, 0, 30)
+        expected = datetime(2020, 1, 1, 1, 0, 0)
+        result = mds_socrata.round_nearest_15th(test)
+        assert result == expected
+
+    def test_time_rounding_success_t9(self):
+        test = datetime(2020, 1, 1, 1, 52, 29)
+        expected = datetime(2020, 1, 1, 1, 45, 0)
+        result = mds_socrata.round_nearest_15th(test)
+        assert result == expected
+
+    def test_time_rounding_success_t10(self):
+        test = datetime(2020, 1, 1, 1, 52, 30)
+        expected = datetime(2020, 1, 1, 2, 0, 0)
+        result = mds_socrata.round_nearest_15th(test)
+        assert result == expected
