@@ -1,8 +1,10 @@
 from dateutil import parser, tz
+from datetime import datetime, timedelta
 from string import Template
 
 from sodapy import Socrata
 from MDSConfig import MDSConfig
+
 
 class MDSSocrata:
 
@@ -32,20 +34,21 @@ class MDSSocrata:
         """
         return str(
             {
-                "SOCRATA_DATA_ENDPOINT": self.mds_config.get_setting("SOCRATA_DATA_ENDPOINT", None),
+                "SOCRATA_DATA_ENDPOINT": self.mds_config.get_setting(
+                    "SOCRATA_DATA_ENDPOINT", None
+                ),
                 "SOCRATA_DATASET": self.mds_config.get_setting("SOCRATA_DATASET", None),
-                "SOCRATA_APP_TOKEN": self.mds_config.get_setting("SOCRATA_APP_TOKEN", None),
+                "SOCRATA_APP_TOKEN": self.mds_config.get_setting(
+                    "SOCRATA_APP_TOKEN", None
+                ),
                 "SOCRATA_KEY_ID": self.mds_config.get_setting("SOCRATA_KEY_ID", None),
-                "SOCRATA_KEY_SECRET": self.mds_config.get_setting("SOCRATA_KEY_SECRET", None)
+                "SOCRATA_KEY_SECRET": self.mds_config.get_setting(
+                    "SOCRATA_KEY_SECRET", None
+                ),
             }
         )
 
-    def __init__(
-            self,
-            provider_name,
-            mds_config,
-            mds_gql
-    ):
+    def __init__(self, provider_name, mds_config, mds_gql):
         """
         Constructor for the init class.
         :param str provider_name: The name of the provider
@@ -62,9 +65,10 @@ class MDSSocrata:
             self.mds_config.get_setting("SOCRATA_APP_TOKEN", None),
             username=self.mds_config.get_setting("SOCRATA_KEY_ID", None),
             password=self.mds_config.get_setting("SOCRATA_KEY_SECRET", None),
-            timeout=20
+            timeout=20,
         )
-        self.query = Template("""
+        self.query = Template(
+            """
         query getTrips {
           api_trips(
                 where: {
@@ -87,7 +91,8 @@ class MDSSocrata:
             census_geoid_end
           }
         }
-        """)
+        """
+        )
 
     def get_query(self, time_min, time_max) -> str:
         """
@@ -103,9 +108,7 @@ class MDSSocrata:
         if isinstance(time_max, str) is False:
             raise Exception("time_max must be a sql datetime string")
         return self.query.substitute(
-            provider_name=self.provider_name,
-            time_min=time_min,
-            time_max=time_max
+            provider_name=self.provider_name, time_min=time_min, time_max=time_max
         )
 
     def get_data(self, time_min, time_max) -> dict:
@@ -115,10 +118,7 @@ class MDSSocrata:
         :param str time_max:
         :return dict:
         """
-        query = self.get_query(
-            time_min=time_min,
-            time_max=time_max
-        )
+        query = self.get_query(time_min=time_min, time_max=time_max)
         return self.mds_http_graphql.request(query)
 
     def get_config(self) -> dict:
@@ -139,7 +139,9 @@ class MDSSocrata:
         if self.client is not None:
             return self.client.upsert(self.mds_socrata_dataset, data)
         else:
-            raise Exception("The socrata client is not initialized correctly, check your API credentials.")
+            raise Exception(
+                "The socrata client is not initialized correctly, check your API credentials."
+            )
 
     def parse_datetimes(self, data) -> dict:
         """
@@ -153,7 +155,9 @@ class MDSSocrata:
         end_time = self.datetime_to_cst(data["end_time"])
         data["start_time"] = self.datetime_to_cst(data["start_time"]).strftime(fmt)
         data["end_time"] = end_time.strftime(fmt)
-        data["modified_date"] = self.datetime_to_cst(data["modified_date"]).strftime(fmt)
+        data["modified_date"] = self.datetime_to_cst(data["modified_date"]).strftime(
+            fmt
+        )
         data["year"] = end_time.year
         data["month"] = end_time.month
         data["hour"] = end_time.hour
@@ -185,4 +189,12 @@ class MDSSocrata:
 
     @staticmethod
     def datetime_to_cst(timestamp):
-        return parser.parse(timestamp).astimezone(tz.gettz('CST'))
+        return parser.parse(timestamp).astimezone(tz.gettz("CST"))
+
+    @staticmethod
+    def round_nearest_15th(timestamp):
+        timestamp += timedelta(minutes=7.5)
+        timestamp -= timedelta(minutes=timestamp.minute % 15,
+                               seconds=timestamp.second,
+                               microseconds=timestamp.microsecond)
+        return timestamp
