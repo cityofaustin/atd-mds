@@ -74,11 +74,11 @@ class MDSSocrata:
                 where: {
                 provider: { provider_name: { _eq: "$provider_name" }}
                 end_time: { _gte: "$time_min" },
-                _and: { start_time: { _lt: "$time_max" }}
+                _and: { end_time: { _lt: "$time_max" }}
               }
           ) {
-            trip_id
-            device_id
+            trip_id: id
+            device_id: device { id }
             vehicle_type
             trip_duration
             trip_distance
@@ -134,6 +134,7 @@ class MDSSocrata:
         :param dict data: The data to be saved unto socrata.
         :return dict:
         """
+        data = list(map(self.clean_trip_device_id, data))
         data = list(map(self.parse_datetimes, data))
         data = list(map(self.check_geos_data, data))
         if self.client is not None:
@@ -192,9 +193,11 @@ class MDSSocrata:
         return parser.parse(timestamp).astimezone(tz.gettz("CST"))
 
     @staticmethod
-    def round_nearest_15th(timestamp):
-        timestamp += timedelta(minutes=7.5)
-        timestamp -= timedelta(minutes=timestamp.minute % 15,
-                               seconds=timestamp.second,
-                               microseconds=timestamp.microsecond)
-        return timestamp
+    def clean_trip_device_id(trip) -> dict:
+        """
+        Transforms the device_id field from a dictionary into a string value
+        :param dict trip: The trip dictionary being transformed
+        :return dict:
+        """
+        trip["device_id"] = trip["device_id"]["id"]
+        return trip
