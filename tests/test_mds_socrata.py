@@ -69,7 +69,7 @@ class TestMDSSocrata:
         )
         assert 'provider: { provider_name: { _eq: "sample_co" }}' in query \
                and 'end_time: { _gte: "2020-01-01 00:00:00" }' in query \
-               and '_and: { start_time: { _lt: "2020-02-01 00:00:00" }}' in query
+               and '_and: { end_time: { _lt: "2020-02-01 00:00:00" }}' in query
 
     def test_get_query_fail_t1(self):
         try:
