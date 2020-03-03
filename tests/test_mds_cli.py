@@ -188,3 +188,19 @@ class TestMDSCli:
         print("Query: " + str(query))
         assert isinstance(gql(query), str) \
             and "status_id: {_eq: 9}" in query
+
+    def test_status_operator_t3(self):
+        mds_cli = MDSCli(
+            mds_config=mds_config,
+            mds_gql=mds_gql,
+            provider="sample_co",
+            interval=2,
+            time_max="2020-1-1-2",
+            time_min=None,
+        )
+
+        s = mds_cli.initialize_schedule()
+        query = s.get_query()
+        print("Query: " + str(query))
+        assert isinstance(gql(query), str) \
+            and "status_id: {_eq: 0}" in query
