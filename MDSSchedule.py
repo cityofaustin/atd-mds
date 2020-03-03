@@ -1,5 +1,4 @@
 import logging
-
 from datetime import datetime
 from string import Template
 
@@ -16,6 +15,7 @@ class MDSSchedule:
         "time_min",
         "time_max",
         "status_check",
+        "status_operator",
     ]
 
     def __init__(
@@ -27,6 +27,7 @@ class MDSSchedule:
         time_max=None,
         time_min=None,
         status_check=True,
+        status_operator="_eq"
     ):
         """
         Constructor for Schedule class.
@@ -37,6 +38,7 @@ class MDSSchedule:
         :param datetime time_max: A datetime object that includes the maximum date and hour of the schedule
         :param datetime time_min: (Optional) A datetime object that indicates the minimum date and hour of the schedule
         :param bool status_check: (Optional) If True, it will enforce the status_id filter.
+        :param str status_operator: (Optional) Provides the operator to use when looking for status_id (examples: '_eq', '_lt', '_lte', default: '_eq').
         """
         logging.debug("MDSSchedule::__init__() Initializing MDSSchedule")
         # Initialization
@@ -47,6 +49,7 @@ class MDSSchedule:
         self.time_max = time_max
         self.time_min = time_min
         self.status_check = status_check
+        self.status_operator = status_operator
 
         # Now initialize query
         self._initialize_query()
@@ -97,12 +100,13 @@ class MDSSchedule:
                     }
                 """.replace(
                 "%STATUS_CHECK%",
-                ("", "status_id: {_eq: $status_id},")[self.status_check],
+                ("", "status_id: {$status_operator: $status_id},")[self.status_check],
             )
         ).substitute(
             {
                 "provider_name": self.provider_name,
                 "status_id": self.status_id,
+                "status_operator": self.status_operator,
                 "min_year": self.time_min.year,
                 "min_month": self.time_min.month,
                 "min_day": self.time_min.day,

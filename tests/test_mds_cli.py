@@ -3,7 +3,7 @@ import pytest
 
 import botocore
 from parent_directory import *
-
+from ariadne import gql
 
 from MDSConfig import MDSConfig
 from MDSCli import MDSCli
@@ -30,7 +30,7 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="jump",
+            provider="veoride",
             interval=1,
             time_max="2020-1-11-17",
             time_min=None,
@@ -84,7 +84,7 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="sample_co",
+            provider="veoride",
             interval=1,
             time_max="2020-1-1-1",
             time_min=None,
@@ -98,7 +98,7 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="sample_co",
+            provider="veoride",
             interval=2,
             time_max="2020-1-1-2",
             time_min=None,
@@ -112,9 +112,9 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="jump",
+            provider="veoride",
             interval=1,
-            time_max="2020-1-11-0",
+            time_max="2020-1-1-1",
             time_min=None,
         )
 
@@ -126,9 +126,9 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="jump",
+            provider="veoride",
             interval=23,
-            time_max="2020-1-11-0",
+            time_max="2020-1-1-1",
             time_min=None,
         )
 
@@ -141,12 +141,66 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="jump",
+            provider="veoride",
             interval=0,
-            time_min="2020-1-10-0",
-            time_max="2020-1-11-0",
+            time_min="2029-1-1-1",
+            time_max="2029-1-2-1",
         )
 
         s = mds_cli.initialize_schedule()
         sc = s.get_schedule()
         assert isinstance(s, MDSSchedule) and len(sc) == 24
+
+    def test_status_operator_t1(self):
+        mds_cli = MDSCli(
+            mds_config=mds_config,
+            mds_gql=mds_gql,
+            provider="veoride",
+            interval=2,
+            time_max="2020-1-1-2",
+            time_min=None,
+        )
+
+        s = mds_cli.initialize_schedule(
+            status_id=8,
+            status_operator="_lt"
+        )
+
+        query = s.get_query()
+        print("Query: " + str(query))
+        assert isinstance(gql(query), str) \
+            and "status_id: {_lt: 8}" in query
+
+    def test_status_operator_t2(self):
+        mds_cli = MDSCli(
+            mds_config=mds_config,
+            mds_gql=mds_gql,
+            provider="veoride",
+            interval=2,
+            time_max="2020-1-1-2",
+            time_min=None,
+        )
+
+        s = mds_cli.initialize_schedule(
+            status_id=9,
+        )
+        query = s.get_query()
+        print("Query: " + str(query))
+        assert isinstance(gql(query), str) \
+            and "status_id: {_eq: 9}" in query
+
+    def test_status_operator_t3(self):
+        mds_cli = MDSCli(
+            mds_config=mds_config,
+            mds_gql=mds_gql,
+            provider="veoride",
+            interval=2,
+            time_max="2020-1-1-2",
+            time_min=None,
+        )
+
+        s = mds_cli.initialize_schedule()
+        query = s.get_query()
+        print("Query: " + str(query))
+        assert isinstance(gql(query), str) \
+            and "status_id: {_eq: 0}" in query
