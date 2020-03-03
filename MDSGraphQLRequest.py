@@ -1,6 +1,7 @@
 import requests
 import logging
 
+
 class MDSGraphQLRequest:
     __slots__ = ["endpoint", "http_params", "http_auth_token", "data", "response"]
 
@@ -35,7 +36,6 @@ class MDSGraphQLRequest:
             "content-type": "application/json",
             "x-hasura-admin-secret": f"{self.http_auth_token}"
         }
-
         self.response = requests.post(
             self.endpoint,
             params=self.http_params,
@@ -44,7 +44,6 @@ class MDSGraphQLRequest:
                 "query": query
             }
         )
-
         self.response.encoding = "utf-8"
         return self.response.json()
 
