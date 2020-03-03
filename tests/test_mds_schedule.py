@@ -22,14 +22,13 @@ mds_gql = MDSGraphQLRequest(
 )
 
 time_max_tester = MDSTimeZone(
-    date_time_now=datetime(2020, 1, 1, 17), offset=1, time_zone="US/Central",
+    date_time_now=datetime(2020, 1, 1, 2), offset=1, time_zone="US/Central",
 )
 
 mds_schedule_tester = MDSSchedule(
     mds_config=mds_config,
     mds_gql=mds_gql,
-    provider_name="jump",
-    time_min=time_max_tester.get_time_end(),
+    provider_name="sample_co",
     time_max=time_max_tester.get_time_end(),
 )
 
