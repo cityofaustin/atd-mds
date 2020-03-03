@@ -30,7 +30,7 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="jump",
+            provider="veoride",
             interval=1,
             time_max="2020-1-11-17",
             time_min=None,
@@ -84,7 +84,7 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="sample_co",
+            provider="veoride",
             interval=1,
             time_max="2020-1-1-1",
             time_min=None,
@@ -98,7 +98,7 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="sample_co",
+            provider="veoride",
             interval=2,
             time_max="2020-1-1-2",
             time_min=None,
@@ -112,9 +112,9 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="jump",
+            provider="veoride",
             interval=1,
-            time_max="2020-1-11-0",
+            time_max="2020-1-1-1",
             time_min=None,
         )
 
@@ -126,9 +126,9 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="jump",
+            provider="veoride",
             interval=23,
-            time_max="2020-1-11-0",
+            time_max="2020-1-1-1",
             time_min=None,
         )
 
@@ -141,10 +141,10 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="jump",
+            provider="veoride",
             interval=0,
-            time_min="2020-1-10-0",
-            time_max="2020-1-11-0",
+            time_min="2029-1-1-1",
+            time_max="2029-1-2-1",
         )
 
         s = mds_cli.initialize_schedule()
@@ -155,7 +155,7 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="sample_co",
+            provider="veoride",
             interval=2,
             time_max="2020-1-1-2",
             time_min=None,
@@ -175,7 +175,7 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="sample_co",
+            provider="veoride",
             interval=2,
             time_max="2020-1-1-2",
             time_min=None,
@@ -193,7 +193,7 @@ class TestMDSCli:
         mds_cli = MDSCli(
             mds_config=mds_config,
             mds_gql=mds_gql,
-            provider="sample_co",
+            provider="veoride",
             interval=2,
             time_max="2020-1-1-2",
             time_min=None,
