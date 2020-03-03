@@ -190,6 +190,7 @@ class MDSCli:
                 time_max=time_max.get_time_end(),
                 status_id=status_id,
                 status_check=status_check,
+                status_operator=status_operator
             )
 
         return self.mds_schedule
