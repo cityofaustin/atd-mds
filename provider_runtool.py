@@ -51,6 +51,16 @@ ATD_MDS_DOCKER_IMAGE = "atddocker/atd-mds-etl:local"
     help="Forces a schedule to run by changing its status to 0 before running.",
 )
 @click.option(
+    "--incomplete-only",
+    is_flag=True,
+    help="Changes the query to process incomplete schedule blocks only.",
+)
+@click.option(
+    "--docker-mode",
+    is_flag=True,
+    help="Changes the query to process incomplete schedule blocks only.",
+)
+@click.option(
     "--dry-run",
     is_flag=True,
     help="Prints the commands on screen, but does not execute.",
@@ -95,8 +105,10 @@ def run(**kwargs):
         time_min=kwargs.get("time_min", None),
     )
 
+    incomplete_only = kwargs.get("incomplete_only", False)
     force = kwargs.get("force", False)
     env_file = kwargs.get("env_file", None)
+    docker_mode = kwargs.get("docker_mode", False)
 
     no_extact = kwargs.get("no_extract", False)
     no_syncdb = kwargs.get("no_sync_db", False)
@@ -104,9 +116,15 @@ def run(**kwargs):
     dry_run = kwargs.get("dry_run", False)
 
     # Obtain the path to the env file for the docker image
-    if env_file is None:
+
+    if docker_mode is True and env_file is None:
         print("Error: Env file not provided, be sure to use the flag: '--env-file ~/path/to/file.env'")
         exit(1)
+
+    if docker_mode:
+        docker_cmd = f"docker run -it --env-file {env_file} --rm {ATD_MDS_DOCKER_IMAGE} "
+    else:
+        docker_cmd = ""
 
     # Check the CLI settings...
     if mds_cli.valid_settings() is False:
@@ -119,13 +137,24 @@ def run(**kwargs):
     print(f"Parsed Time End: {mds_cli.parsed_date_time_max}")
     print(f"Parsed Interval: {mds_cli.parsed_interval}")
 
-    # Retrieve the Schedule Class instance
-    mds_schedule = mds_cli.initialize_schedule(
-        # Default status, we expect 0 = new
-        status_id=0,
-        # Do not check for status if force is enabled
-        status_check=(True, False)[force],
-    )
+    if incomplete_only:
+        # Retrieve incomplete schedules
+        mds_schedule = mds_cli.initialize_schedule(
+            # Default status, we expect 0 = new
+            status_id=8,
+            # Do not check for status if force is enabled
+            status_check=(True, False)[force],
+            # We need to make sure it is less than and not equal to 8.
+            status_operator="_lt"
+        )
+    else:
+        # Retrieve the Schedule Class instance
+        mds_schedule = mds_cli.initialize_schedule(
+            # Default status, we expect 0 = new
+            status_id=0,
+            # Do not check for status if force is enabled
+            status_check=(True, False)[force],
+        )
 
     # Gather schedule items:
     schedule = mds_schedule.get_schedule()
@@ -152,7 +181,7 @@ def run(**kwargs):
         for process in processes:
             log = f"{mds_cli.provider}/{mds_cli.provider}-{block}-{process}.log"
             error_log = f"{mds_cli.provider}/{mds_cli.provider}-{block}-{process}-error.log"
-            command = f'docker run -it --env-file {env_file} --rm {ATD_MDS_DOCKER_IMAGE} ./provider_{process}.py --provider "{mds_cli.provider}" --time-max "{block}" --interval 1 {force_enabled} >> ./logs/{log} 2> ./logs/{error_log}'
+            command = f'{docker_cmd}./provider_{process}.py --provider "{mds_cli.provider}" --time-max "{block}" --interval 1 {force_enabled} >> ./logs/{log} 2> ./logs/{error_log}'
 
             # Socrata Sync does not support need the --force flag
             if process == "sync_socrata":
@@ -166,7 +195,7 @@ def run(**kwargs):
                         Process: {process} {processes.index(process) + 1}/3
                         Schedule: {sb}
                         Block: '{block}' (1hr)
-                        Log: $ tail ./{log}
+                        Log: $ tail ./logs/{log}
                         Command: '{command}' 
                     """
                 )
