@@ -51,6 +51,11 @@ ATD_MDS_DOCKER_IMAGE = "atddocker/atd-mds-etl:local"
     help="Forces a schedule to run by changing its status to 0 before running.",
 )
 @click.option(
+    "--incomplete-only",
+    is_flag=True,
+    help="Changes the query to process incomplete schedule blocks only.",
+)
+@click.option(
     "--dry-run",
     is_flag=True,
     help="Prints the commands on screen, but does not execute.",
@@ -95,6 +100,7 @@ def run(**kwargs):
         time_min=kwargs.get("time_min", None),
     )
 
+    incomplete_only = kwargs.get("incomplete_only", False)
     force = kwargs.get("force", False)
     env_file = kwargs.get("env_file", None)
 
@@ -119,13 +125,24 @@ def run(**kwargs):
     print(f"Parsed Time End: {mds_cli.parsed_date_time_max}")
     print(f"Parsed Interval: {mds_cli.parsed_interval}")
 
-    # Retrieve the Schedule Class instance
-    mds_schedule = mds_cli.initialize_schedule(
-        # Default status, we expect 0 = new
-        status_id=0,
-        # Do not check for status if force is enabled
-        status_check=(True, False)[force],
-    )
+    if incomplete_only:
+        # Retrieve incomplete schedules
+        mds_schedule = mds_cli.initialize_schedule(
+            # Default status, we expect 0 = new
+            status_id=8,
+            # Do not check for status if force is enabled
+            status_check=(True, False)[force],
+            # We need to make sure it is less than and not equal to 8.
+            status_operator="_lt"
+        )
+    else:
+        # Retrieve the Schedule Class instance
+        mds_schedule = mds_cli.initialize_schedule(
+            # Default status, we expect 0 = new
+            status_id=0,
+            # Do not check for status if force is enabled
+            status_check=(True, False)[force],
+        )
 
     # Gather schedule items:
     schedule = mds_schedule.get_schedule()
