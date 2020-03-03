@@ -56,6 +56,11 @@ ATD_MDS_DOCKER_IMAGE = "atddocker/atd-mds-etl:local"
     help="Changes the query to process incomplete schedule blocks only.",
 )
 @click.option(
+    "--docker-mode",
+    is_flag=True,
+    help="Changes the query to process incomplete schedule blocks only.",
+)
+@click.option(
     "--dry-run",
     is_flag=True,
     help="Prints the commands on screen, but does not execute.",
@@ -103,6 +108,7 @@ def run(**kwargs):
     incomplete_only = kwargs.get("incomplete_only", False)
     force = kwargs.get("force", False)
     env_file = kwargs.get("env_file", None)
+    docker_mode = kwargs.get("docker_mode", False)
 
     no_extact = kwargs.get("no_extract", False)
     no_syncdb = kwargs.get("no_sync_db", False)
@@ -110,9 +116,15 @@ def run(**kwargs):
     dry_run = kwargs.get("dry_run", False)
 
     # Obtain the path to the env file for the docker image
-    if env_file is None:
+
+    if docker_mode is True and env_file is None:
         print("Error: Env file not provided, be sure to use the flag: '--env-file ~/path/to/file.env'")
         exit(1)
+
+    if docker_mode:
+        docker_cmd = f"docker run -it --env-file {env_file} --rm {ATD_MDS_DOCKER_IMAGE} "
+    else:
+        docker_cmd = ""
 
     # Check the CLI settings...
     if mds_cli.valid_settings() is False:
@@ -169,7 +181,7 @@ def run(**kwargs):
         for process in processes:
             log = f"{mds_cli.provider}/{mds_cli.provider}-{block}-{process}.log"
             error_log = f"{mds_cli.provider}/{mds_cli.provider}-{block}-{process}-error.log"
-            command = f'docker run -it --env-file {env_file} --rm {ATD_MDS_DOCKER_IMAGE} ./provider_{process}.py --provider "{mds_cli.provider}" --time-max "{block}" --interval 1 {force_enabled} >> ./logs/{log} 2> ./logs/{error_log}'
+            command = f'{docker_cmd}./provider_{process}.py --provider "{mds_cli.provider}" --time-max "{block}" --interval 1 {force_enabled} >> ./logs/{log} 2> ./logs/{error_log}'
 
             # Socrata Sync does not support need the --force flag
             if process == "sync_socrata":
@@ -183,7 +195,7 @@ def run(**kwargs):
                         Process: {process} {processes.index(process) + 1}/3
                         Schedule: {sb}
                         Block: '{block}' (1hr)
-                        Log: $ tail ./{log}
+                        Log: $ tail ./logs/{log}
                         Command: '{command}' 
                     """
                 )
