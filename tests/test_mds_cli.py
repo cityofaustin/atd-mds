@@ -3,7 +3,7 @@ import pytest
 
 import botocore
 from parent_directory import *
-
+from ariadne import gql
 
 from MDSConfig import MDSConfig
 from MDSCli import MDSCli
@@ -150,3 +150,41 @@ class TestMDSCli:
         s = mds_cli.initialize_schedule()
         sc = s.get_schedule()
         assert isinstance(s, MDSSchedule) and len(sc) == 24
+
+    def test_status_operator_t1(self):
+        mds_cli = MDSCli(
+            mds_config=mds_config,
+            mds_gql=mds_gql,
+            provider="sample_co",
+            interval=2,
+            time_max="2020-1-1-2",
+            time_min=None,
+        )
+
+        s = mds_cli.initialize_schedule(
+            status_id=8,
+            status_operator="_lt"
+        )
+
+        query = s.get_query()
+        print("Query: " + str(query))
+        assert isinstance(gql(query), str) \
+            and "status_id: {_lt: 8}" in query
+
+    def test_status_operator_t2(self):
+        mds_cli = MDSCli(
+            mds_config=mds_config,
+            mds_gql=mds_gql,
+            provider="sample_co",
+            interval=2,
+            time_max="2020-1-1-2",
+            time_min=None,
+        )
+
+        s = mds_cli.initialize_schedule(
+            status_id=9,
+        )
+        query = s.get_query()
+        print("Query: " + str(query))
+        assert isinstance(gql(query), str) \
+            and "status_id: {_eq: 9}" in query
