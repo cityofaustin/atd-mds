@@ -61,6 +61,11 @@ ATD_MDS_DOCKER_IMAGE = "atddocker/atd-mds-etl:local"
     help="Changes the query to process incomplete schedule blocks only.",
 )
 @click.option(
+    "--no-logs",
+    is_flag=True,
+    help="When enabled does not output logs.",
+)
+@click.option(
     "--dry-run",
     is_flag=True,
     help="Prints the commands on screen, but does not execute.",
@@ -114,6 +119,7 @@ def run(**kwargs):
     no_syncdb = kwargs.get("no_sync_db", False)
     no_syncsoc = kwargs.get("no_sync_socrata", False)
     dry_run = kwargs.get("dry_run", False)
+    no_logs = kwargs.get("no_logs", False)
 
     # Obtain the path to the env file for the docker image
 
@@ -181,7 +187,10 @@ def run(**kwargs):
         for process in processes:
             log = f"{mds_cli.provider}/{mds_cli.provider}-{block}-{process}.log"
             error_log = f"{mds_cli.provider}/{mds_cli.provider}-{block}-{process}-error.log"
-            command = f'{docker_cmd}./provider_{process}.py --provider "{mds_cli.provider}" --time-max "{block}" --interval 1 {force_enabled} >> ./logs/{log} 2> ./logs/{error_log}'
+            logs_command = (f">> ./logs/{log} 2> ./logs/{error_log}", "")[no_logs]
+
+            command = f'{docker_cmd}./provider_{process}.py --provider "{mds_cli.provider}" ' \
+                f'--time-max "{block}" --interval 1 {force_enabled} {logs_command}'
 
             # Socrata Sync does not support need the --force flag
             if process == "sync_socrata":
