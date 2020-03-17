@@ -248,3 +248,37 @@ class TestMDSAWS:
         encrypted_string = mds_aws.encrypt(test_string)
         decrypted = mds_aws.decrypt(encrypted_string)
         assert decrypted == test_string
+
+    def test_save_encrypted_success_t1(self):
+        file_path = "tests/json_save_test_encrypted.json"
+        initial_file_content = """
+        {
+            "glossary": {
+                "title": "example glossary",
+                "GlossDiv": {
+                    "title": "S",
+                    "GlossList": {
+                        "GlossEntry": {
+                            "ID": "SGML",
+                            "SortAs": "SGML",
+                            "GlossTerm": "Standard Generalized Markup Language",
+                            "Acronym": "SGML",
+                            "Abbrev": "ISO 8879:1986",
+                            "GlossDef": {
+                                "para": "A meta-markup language, used to create markup languages such as DocBook.",
+                                "GlossSeeAlso": ["GML", "XML"]
+                            },
+                            "GlossSee": "markup"
+                        }
+                    }
+                }
+            }
+        }
+        """
+        mds_aws.set_json_document(json_document=initial_file_content)
+        mds_aws.save(file_path=file_path, encrypted=True)
+        file_content_decrytpted = mds_aws.load(file_path=file_path)
+        mds_aws.delete_file(file_name=file_path)
+        assert json.dumps(json.loads(initial_file_content)) == (
+            json.dumps(file_content_decrytpted)
+        )
