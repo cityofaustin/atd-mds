@@ -230,3 +230,21 @@ class TestMDSAWS:
 
     def test_is_encrypted_fail_t3(self):
         assert mds_aws.is_encrypted(None) is False
+
+    def test_decrypt_success_t1(self):
+        test_string = "This is a plain-text string."
+        encrypted_string = mds_aws.encrypt(test_string)
+        decrypted = mds_aws.decrypt(encrypted_string)
+        assert decrypted == test_string
+
+    def test_decrypt_success_t2(self):
+        test_string = "-$W[KF_c6u/Ye]Uc%2BfKBn[^!vL93."
+        encrypted_string = mds_aws.encrypt(test_string)
+        decrypted = mds_aws.decrypt(encrypted_string)
+        assert decrypted == test_string
+
+    def test_decrypt_success_t3(self):
+        test_string = "nb8UK]n<V$iQ/]edB7YG2996^K8W94-@HW5EZsZA+%onDNe][9{*8jDf8UG_p#"
+        encrypted_string = mds_aws.encrypt(test_string)
+        decrypted = mds_aws.decrypt(encrypted_string)
+        assert decrypted == test_string
