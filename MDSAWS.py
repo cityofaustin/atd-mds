@@ -168,3 +168,15 @@ class MDSAWS:
             self.client.delete_object(
                 Bucket=self.bucket_name, Key=file_name, VersionId=version
             )
+
+    @staticmethod
+    def is_encrypted(input_string) -> bool:
+        """
+        Returns True if the specified string is encrypted, False otherwise.
+        :param str input_string: The string to be evaluated...
+        :return bool:
+        """
+        try:
+            return input_string[1:6] == "AAAAA"
+        except:
+            return False
