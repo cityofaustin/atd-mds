@@ -152,3 +152,13 @@ class MDSAWS:
             "bucket_name": self.bucket_name,
             "json_document": self.json_document,
         }
+
+    def get_all_versions(self, file_name):
+        response = self.client.list_object_versions(
+            Bucket=self.bucket_name, Prefix=file_name,
+        )
+
+        try:
+            return [id["VersionId"] for id in response["Versions"]]
+        except:
+            return []
