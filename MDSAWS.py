@@ -192,3 +192,14 @@ class MDSAWS:
             return str(self.cipher_suite.encrypt(input_string.encode()).decode())
         except:
             return None
+
+    def decrypt(self, input_string) -> str:
+        """
+        Decrypts a string and returns a plain decoded string.
+        :param str input_string: The input string to be decrypted
+        :return str:
+        """
+        try:
+            return str(self.cipher_suite.decrypt(input_string.encode()).decode())
+        except:
+            return None
