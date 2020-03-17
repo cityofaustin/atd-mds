@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import pytest
+import json
 
 import botocore
 from parent_directory import *
@@ -9,6 +10,15 @@ from MDSConfig import MDSConfig
 from MDSAWS import MDSAWS
 
 mds_config = MDSConfig()
+sample_encryption_key = "8zHNiqyI2_1nkt2xHYbJGbEZew2zRDfO1Jgii01jM5g="
+
+mds_aws = MDSAWS(
+    bucket_name=mds_config.ATD_MDS_BUCKET,
+    aws_default_region=mds_config.ATD_MDS_REGION,
+    aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
+    aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
+    encryption_key=sample_encryption_key,
+)
 
 
 class TestMDSAWS:
@@ -19,23 +29,18 @@ class TestMDSAWS:
     @classmethod
     def teardown_class(cls):
         print("All tests finished for: TestMDSAWS")
+        mds_aws.delete_file(file_name="tests/json_save_test1.json")
 
     def test_constructor(self):
-        mds_aws = MDSAWS(
+        mds_aws_test = MDSAWS(
             bucket_name=mds_config.ATD_MDS_BUCKET,
             aws_default_region=mds_config.ATD_MDS_REGION,
             aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
             aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
         )
-        assert isinstance(mds_aws, MDSAWS)
+        assert isinstance(mds_aws_test, MDSAWS)
 
     def test_get_config(self):
-        mds_aws = MDSAWS(
-            bucket_name=mds_config.ATD_MDS_BUCKET,
-            aws_default_region=mds_config.ATD_MDS_REGION,
-            aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
-        )
         aws_config = mds_aws.get_config()
         print(aws_config)
         assert isinstance(aws_config, dict)
@@ -65,24 +70,11 @@ class TestMDSAWS:
             }
         }
         """
-        mds_aws = MDSAWS(
-            bucket_name=mds_config.ATD_MDS_BUCKET,
-            aws_default_region=mds_config.ATD_MDS_REGION,
-            aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
-        )
-
         mds_aws.set_json_document(json_document=json_document)
         assert isinstance(mds_aws.json_document, str)
 
     def test_load_valid_json_t2(self):
         json_document = "{}"
-        mds_aws = MDSAWS(
-            bucket_name=mds_config.ATD_MDS_BUCKET,
-            aws_default_region=mds_config.ATD_MDS_REGION,
-            aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
-        )
         mds_aws.set_json_document(json_document=json_document)
         assert isinstance(mds_aws.json_document, str)
 
@@ -92,52 +84,28 @@ class TestMDSAWS:
                 "This is not a valid json object"
             }
         """
-        mds_aws = MDSAWS(
-            bucket_name=mds_config.ATD_MDS_BUCKET,
-            aws_default_region=mds_config.ATD_MDS_REGION,
-            aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
-        )
         mds_aws.set_json_document(json_document=json_document)
         assert isinstance(mds_aws.json_document, str) is False
 
     def test_load_invalid_json_t2(self):
-        mds_aws = MDSAWS(
-            bucket_name=mds_config.ATD_MDS_BUCKET,
-            aws_default_region=mds_config.ATD_MDS_REGION,
-            aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
-        )
         mds_aws.set_json_document(json_document=None)
         assert isinstance(mds_aws.json_document, str) is False
 
     def test_load_invalid_json_t3(self):
         json_document = {"valid": "dictionary", "but": "not string"}
-        mds_aws = MDSAWS(
-            bucket_name=mds_config.ATD_MDS_BUCKET,
-            aws_default_region=mds_config.ATD_MDS_REGION,
-            aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
-        )
         mds_aws.set_json_document(json_document=json_document)
         assert isinstance(mds_aws.json_document, str) is False
 
     def test_client_initializer_success_t1(self):
-        mds_aws = MDSAWS(
+        mds_aws_test = MDSAWS(
             bucket_name=mds_config.ATD_MDS_BUCKET,
             aws_default_region=mds_config.ATD_MDS_REGION,
             aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
             aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
         )
-        assert mds_aws.client is not None
+        assert mds_aws_test.client is not None
 
     def test_save_file_success_t1(self):
-        mds_aws = MDSAWS(
-            bucket_name=mds_config.ATD_MDS_BUCKET,
-            aws_default_region=mds_config.ATD_MDS_REGION,
-            aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
-            aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
-        )
         file_path = "tests/json_save_test1.json"
         initial_file_content = """
         {
@@ -166,4 +134,4 @@ class TestMDSAWS:
         mds_aws.set_json_document(json_document=initial_file_content)
         mds_aws.save(file_path=file_path)
         file_content = mds_aws.load(file_path=file_path)
-        assert file_content == file_content
+        assert str(json.loads(initial_file_content)) == str(file_content)
