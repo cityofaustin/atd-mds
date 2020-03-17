@@ -180,3 +180,15 @@ class MDSAWS:
             return input_string[1:6] == "AAAAA"
         except:
             return False
+
+    def encrypt(self, input_string) -> str:
+        """
+        Encrypts a string based on the provided key and input text.
+        :param str string: The string to be encrypted.
+        :return str:
+        """
+
+        try:
+            return str(self.cipher_suite.encrypt(input_string.encode()).decode())
+        except:
+            return None
