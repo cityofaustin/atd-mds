@@ -162,3 +162,9 @@ class MDSAWS:
             return [id["VersionId"] for id in response["Versions"]]
         except:
             return []
+
+    def delete_file(self, file_name):
+        for version in self.get_all_versions(file_name=file_name):
+            self.client.delete_object(
+                Bucket=self.bucket_name, Key=file_name, VersionId=version
+            )
