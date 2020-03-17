@@ -12,6 +12,7 @@ class MDSConfig:
         "ATD_ETL_MDS_CONFIG",
         "ATD_MDS_ACCESS_KEY",
         "ATD_MDS_SECRET_ACCESS_KEY",
+        "ATD_MDS_FERNET_KEY",
         "ATD_MDS_BUCKET",
         "ATD_MDS_STAGE",
         "ATD_MDS_MAX_THREADS",
@@ -30,6 +31,7 @@ class MDSConfig:
         self.ATD_MDS_REGION = os.getenv("AWS_DEFALUT_REGION", None)
         self.ATD_MDS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY_ID", None)
         self.ATD_MDS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", None)
+        self.ATD_MDS_FERNET_KEY = os.getenv("ATD_MDS_FERNET_KEY", None)
         self.ATD_MDS_BUCKET = os.getenv("ATD_MDS_BUCKET", None)
         self.ATD_MDS_STAGE = os.getenv("ATD_MDS_RUN_MODE", "STAGING")
         self.ATD_MDS_MAX_THREADS = os.getenv("ATD_MDS_MAX_THREADS", 10)
@@ -59,6 +61,7 @@ class MDSConfig:
             "ATD_MDS_REGION": self.ATD_MDS_REGION,
             "ATD_MDS_ACCESS_KEY": self.ATD_MDS_ACCESS_KEY,
             "ATD_MDS_SECRET_ACCESS_KEY": self.ATD_MDS_SECRET_ACCESS_KEY,
+            "ATD_FERNET_KEY": f"XXX{self.ATD_FERNET_KEY[-4:0]}",
             "ATD_MDS_BUCKET": self.ATD_MDS_BUCKET,
             "ATD_MDS_STAGE": self.ATD_MDS_STAGE,
             "ATD_MDS_PROVIDERS": self.ATD_MDS_PROVIDERS,
@@ -77,6 +80,7 @@ class MDSConfig:
             aws_default_region=self.ATD_MDS_REGION,
             aws_access_key_id=self.ATD_MDS_ACCESS_KEY,
             aws_secret_access_key=self.ATD_MDS_SECRET_ACCESS_KEY,
+            encryption_key=self.ATD_MDS_FERNET_KEY
         )
 
     @staticmethod
