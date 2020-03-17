@@ -200,3 +200,6 @@ class TestMDSAWS:
         mds_aws.delete_file(file_name=file_name)
         versions_two = mds_aws.get_all_versions(file_name=file_name)
         assert len(versions) == 2 and len(versions_two) == 0
+
+    def test_cipher_suite_success_t1(self):
+        assert mds_aws.cipher_suite is not None
