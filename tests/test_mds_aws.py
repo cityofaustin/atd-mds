@@ -193,3 +193,10 @@ class TestMDSAWS:
 
         versions = mds_aws.get_all_versions(file_name=file_path)
         assert len(versions) == 2
+
+    def test_delete_all_versions_success_t1(self):
+        file_name = "tests/json_versions_test.json"
+        versions = mds_aws.get_all_versions(file_name=file_name)
+        mds_aws.delete_file(file_name=file_name)
+        versions_two = mds_aws.get_all_versions(file_name=file_name)
+        assert len(versions) == 2 and len(versions_two) == 0
