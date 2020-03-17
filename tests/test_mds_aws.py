@@ -221,3 +221,12 @@ class TestMDSAWS:
         encrypted_string = str(mds_aws.encrypt(test_string))
         encrypted = mds_aws.is_encrypted(encrypted_string)
         assert encrypted is True
+
+    def test_is_encrypted_fail_t1(self):
+        assert mds_aws.is_encrypted("This is a plain-text string.") is False
+
+    def test_is_encrypted_fail_t2(self):
+        assert mds_aws.is_encrypted("") is False
+
+    def test_is_encrypted_fail_t3(self):
+        assert mds_aws.is_encrypted(None) is False
