@@ -135,3 +135,61 @@ class TestMDSAWS:
         mds_aws.save(file_path=file_path)
         file_content = mds_aws.load(file_path=file_path)
         assert str(json.loads(initial_file_content)) == str(file_content)
+
+    def test_save_get_versions_success_t1(self):
+        file_path = "tests/json_versions_test.json"
+        initial_file_content_v1 = """
+        {
+            "glossary": {
+                "title": "example glossary",
+                "GlossDiv": {
+                    "title": "S",
+                    "GlossList": {
+                        "GlossEntry": {
+                            "ID": "SGML",
+                            "SortAs": "SGML",
+                            "GlossTerm": "Standard Generalized Markup Language",
+                            "Acronym": "SGML",
+                            "Abbrev": "ISO 8879:1986",
+                            "GlossDef": {
+                                "para": "A meta-markup language, used to create markup languages such as DocBook.",
+                                "GlossSeeAlso": ["GML", "XML"]
+                            },
+                            "GlossSee": "markup"
+                        }
+                    }
+                }
+            }
+        }
+        """
+        initial_file_content_v2 = """
+        {
+            "glossary": {
+                "title": "example glossary version 2",
+                "GlossDiv": {
+                    "title": "S",
+                    "GlossList": {
+                        "GlossEntry": {
+                            "ID": "SGML",
+                            "SortAs": "SGML",
+                            "GlossTerm": "Standard Generalized Markup Language",
+                            "Acronym": "SGML",
+                            "Abbrev": "ISO 8879:1986",
+                            "GlossDef": {
+                                "para": "A meta-markup language, used to create markup languages such as DocBook.",
+                                "GlossSeeAlso": ["GML", "XML"]
+                            },
+                            "GlossSee": "markup"
+                        }
+                    }
+                }
+            }
+        }
+        """
+        mds_aws.set_json_document(json_document=initial_file_content_v1)
+        mds_aws.save(file_path=file_path)
+        mds_aws.set_json_document(json_document=initial_file_content_v2)
+        mds_aws.save(file_path=file_path)
+
+        versions = mds_aws.get_all_versions(file_name=file_path)
+        assert len(versions) == 2
