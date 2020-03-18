@@ -21,6 +21,7 @@ mds_aws = MDSAWS(
     aws_default_region=mds_config.ATD_MDS_REGION,
     aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
     aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
+    encryption_key=mds_config.ATD_MDS_FERNET_KEY,
     bucket_name=mds_config.ATD_MDS_BUCKET,
 )
 # The CLI class will need an http-graphql client
@@ -153,7 +154,11 @@ def run(**kwargs):
         # Determine final file path
         s3_trips_file = data_path + "trips.json"
         print("Saving Data to S3 ...")
-        mds_aws.save(json_document=json.dumps(trips), file_path=s3_trips_file)
+        mds_aws.save(
+            json_document=json.dumps(trips),
+            file_path=s3_trips_file,
+            encrypted=True
+        )
         print(f"File saved to {s3_trips_file}")
 
         print(f"Updating status for schedule_id: {schedule_item['schedule_id']}")

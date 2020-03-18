@@ -33,6 +33,7 @@ mds_aws = MDSAWS(
     aws_default_region=mds_config.ATD_MDS_REGION,
     aws_access_key_id=mds_config.ATD_MDS_ACCESS_KEY,
     aws_secret_access_key=mds_config.ATD_MDS_SECRET_ACCESS_KEY,
+    encryption_key=mds_config.ATD_MDS_FERNET_KEY,
     bucket_name=mds_config.ATD_MDS_BUCKET,
 )
 
