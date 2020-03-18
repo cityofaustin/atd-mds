@@ -61,7 +61,7 @@ class MDSConfig:
             "ATD_MDS_REGION": self.ATD_MDS_REGION,
             "ATD_MDS_ACCESS_KEY": self.ATD_MDS_ACCESS_KEY,
             "ATD_MDS_SECRET_ACCESS_KEY": self.ATD_MDS_SECRET_ACCESS_KEY,
-            "ATD_FERNET_KEY": f"XXX{self.ATD_FERNET_KEY[-4:0]}",
+            "ATD_MDS_FERNET_KEY": self.ATD_MDS_FERNET_KEY,
             "ATD_MDS_BUCKET": self.ATD_MDS_BUCKET,
             "ATD_MDS_STAGE": self.ATD_MDS_STAGE,
             "ATD_MDS_PROVIDERS": self.ATD_MDS_PROVIDERS,
