@@ -57,8 +57,18 @@ python code and classes.
 
 # Running Tests
 
-First make sure you have the requirements by running `pip install -r requirements.txt`, after that you should be able to run:
+### Important: You will need to be on VPN to run tests, this is because the APIs (production or staging) only respond to traffic from CTM's network.
+### Follow these steps in order:
+1. Make sure you are on CTM's VPN network.
+2. Be sure to export both environment variables:
+    ```
+    export ATD_MDS_BUCKET="the-bucket-name";
+    export ATD_MDS_FERNET_KEY="abc123fernet_key="
+    ```
+    You can find the values in 1Password or in Airflow
+3. Make sure you have the requirements by running `pip install -r requirements.txt`, after that you should be able to run:
 
+### Once completed the above steps:
 To run all tests with some verbosity:
 
 ```
