@@ -209,7 +209,7 @@ def run(**kwargs):
                         Command: '{command}' 
                     """
                 )
-                os.system(command)
+                print(os.system(command))
 
             else:
                 print(f"(dry)$ {command}\n")
