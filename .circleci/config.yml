@@ -12,12 +12,12 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 18.09.3
-      - run:
-          name: "Run Unit Tests"
-          command: |
-            sudo apt-get install libspatialindex-dev
-            pip install -r requirements.txt
-            pytest -v
+#      - run:
+#          name: "Run Unit Tests"
+#          command: |
+#            sudo apt-get install libspatialindex-dev
+#            pip install -r requirements.txt
+#            pytest -v
       - run:
           name: "Building Docker Container"
           command: |
