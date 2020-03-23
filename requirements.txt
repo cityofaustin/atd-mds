@@ -1,6 +1,6 @@
 ariadne==0.9.0
 asyncore-wsgi==0.0.9
-atd-mds-client==0.0.3
+atd-mds-client==0.0.4
 attrs==19.3.0
 boto3==1.11.12
 botocore==1.14.12
