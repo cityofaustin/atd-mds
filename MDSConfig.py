@@ -37,7 +37,7 @@ class MDSConfig:
         self.ATD_MDS_MAX_THREADS = os.getenv("ATD_MDS_MAX_THREADS", 10)
         self.ATD_MDS_PROVIDERS = os.getenv("ATD_MDS_PROVIDERS", "config/providers.json")
         self.ATD_MDS_SETTINGS = os.getenv(
-            "ATD_MDS_PROVIDERS", f"config/settings_{self.ATD_MDS_STAGE.lower()}.json"
+            "ATD_MDS_SETTINGS", f"config/settings_{self.ATD_MDS_STAGE.lower()}.json"
         )
         self.ATD_MDS_CENSUS_GEOJSON = os.getenv(
             "ATD_MDS_CENSUS_GEOJSON", "data/census_tracts_2010_simplified_20pct.json"
