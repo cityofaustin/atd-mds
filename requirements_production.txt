@@ -1,4 +1,4 @@
-atd-mds-client==0.0.3
+atd-mds-client==0.0.4
 boto3==1.11.13
 botocore==1.14.13
 Cerberus==1.3.2
