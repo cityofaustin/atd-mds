@@ -24,14 +24,18 @@ the tracking and gathering of data, new or old.
     $ pip install -r requirements.txt
     ```
     
-3. Set up these environment variables in your shell terminal (with proper values):
+3. For local development, set up these environment variables in your shell terminal (with proper values):
 
     ```
-    $ export ATD_MDS_BUCKET="the-mds-bucket-name";
     $ export AWS_DEFALUT_REGION="us-east-1"
     $ export AWS_ACCESS_KEY_ID="YOUR_ACCESS_KEY"
     $ export AWS_SECRET_ACCESS_KEY="YOUR_SECRET_KEY"
+    $ export ATD_MDS_FERNET_KEY="the-mds-fernet-key"
+    $ export ATD_MDS_BUCKET="the-mds-bucket-name";
     ``` 
+    
+    Both the bucket name and the fernet key are present in the password vault.
+     
 4. Run tests:
     
    ```
@@ -53,6 +57,13 @@ of AWS credentials with S3 permissions.
 This architecture allows to run this ETL from anywhere at any scale
 in an organized way.
 
+The files are encrypted, and you will not be able to read them without
+the encryption keys. But once provided the keys, you can 
+
+There is a tool called `./provider_configuration.py` which can help you
+load and save configuration files, the encryption and decryption is handled automatically
+if the fernet keys are provided.
+
 ## Organization
 
 The ETL process currently consists of several modules:
@@ -62,15 +73,11 @@ it looks at a schedule table in the cloud, where it determines what
 time frames it needs to download data for. Then proceeds to download
 the data and store it in S3.
 
-2. `provider_validate_data.py` This file makes sure the data is valid
-for processing, it simply runs a series of checks and makes sure it is
-ready for further processing into the database.
-
-3. `provider_sync_db.py` This file reads the JSON document and inserts
+2. `provider_sync_db.py` This file reads the JSON document and inserts
 the data into a postgres database, one item at the time. It reports for
 any errors and provides a count of all records processed.
 
-4. `provider_sync_socrata.py` This file takes the same JSON data and
+3. `provider_sync_socrata.py` This file takes the same JSON data and
 transforms it into a socrata dataset and publishes it.
 
 ## Testing
@@ -124,6 +131,66 @@ in the past in hours from time_max. For example, if interval is set to `1` and t
 is set to `2020-01-01-23` the ETL will gather data from 10pm to 11pm. If this was set to
 `2` with the same time max value, the ETL would gather data from 9pm to 11pm. This flag
 is ignored if the flag `--time-min` is provided.
+
+`--force` Both extraction and sync_db allow forcing the process. Sometimes a schedule block
+has already run, and the tools will not allow you to run it again. This flag ensures the
+block process is executed again and re-updates the block status in the database.
+
+# ETL Flow:
+
+![ETL Process.png](https://images.zenhubusercontent.com/5b7edad7290aac725aec290c/8c61b94f-c3e9-40ac-96d0-a2940925066a)
+
+# ETL Run Tool
+
+There is an included script called `./process_runtool.py`, and its purpose is to run all three ETL
+stages in order for a schedule block. The parameters it needs are the same as the other scripts.
+
+This is an example on how to run this tool:
+
+### Run within Python
+Run for a single hour block:
+```
+./provider_runtool.py --provider "super_scooters" --time-min "2020-03-01-01" --interval 1 --dry-run
+```
+
+Running a range of dates:
+```
+./provider_runtool.py --provider "super_scooters" --time-min "2020-03-01-01" --time-max "2020-04-01-00" --dry-run
+```
+
+The script above will gather all schedule blocks for the entire month of March, and execute all three ETL stages in order.
+
+### Run using Docker:
+```
+./provider_runtool.py --docker-mode --env-file ~/.ssh/atd-etl/etl.mds.production.env --provider "jump" --time-min "2020-03-01-01" --time-max "2020-3-18-20" --dry-run
+```
+
+### Available flags:
+
+`--dry-run` This flag makes the run tool only "print" the commands it is going to run. It is a great tool to learn
+how to use this script and not make changes to the database.
+
+`--force` When present, this flag will run all three ETL processes in `force` mode.
+
+`--incomplete-only` This flag indicates the run tool to only look for incomplete schedule blocks.
+
+`--no-logs` This flag indicates the run tool to skip the output of logs  
+
+`--docker-mode` When present, this flag indicates the tool to run the scripts with Docker.
+
+`--env-file [file path]` When running on docker, this file provides all the environment variables the container needs to run.
+
+`--no-sync-db` When present, it indicates the run tool to skip syncing the data to the postgres database.
+
+`--no-sync-socrata` When present, it indicates the tool to skip syncing the data to socrata.
+
+`--no-extract` When present, this flag indicates the tool to skip the ETL first step of extraction. The other processes will assume the data is there, or fail otherwise.
+
+`--time-max` The maximum end date for a schedule block.
+
+`--time-min` The minimum end date for a schedule block.
+
+`--interval [integer]` The interval in hours. This flag indicates the number of hours the script needs to go back and retrieve from `--time-max`
 
 # License
 This project is provided under the GPL 3.0 license.
