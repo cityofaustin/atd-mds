@@ -64,6 +64,7 @@ There is a tool called `./provider_configuration.py` which can help you
 load and save configuration files, the encryption and decryption is handled automatically
 if the fernet keys are provided.
 
+
 ## Organization
 
 The ETL process currently consists of several modules:
@@ -161,9 +162,13 @@ Running a range of dates:
 The script above will gather all schedule blocks for the entire month of March, and execute all three ETL stages in order.
 
 ### Run using Docker:
+
 ```
-./provider_runtool.py --docker-mode --env-file ~/.ssh/atd-etl/etl.mds.production.env --provider "jump" --time-min "2020-03-01-01" --time-max "2020-3-18-20" --dry-run
+./provider_runtool.py --docker-mode --env-file ~/path/to/your/file.env --provider "jump" --time-min "2020-03-01-01" --time-max "2020-3-18-20" --dry-run
 ```
+
+This will require that you create a .env file compatible with docker and that you provide the path to the file.
+You can run either a range (as shown above, or use the interval header).
 
 ### Available flags:
 
