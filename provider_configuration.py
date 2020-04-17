@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 """
-Socrata - Exporter
+Provider Configuration
 Author: Austin Transportation Department, Data & Technology Services
-Description: The purpose of this script is to gather data from Hasura
-and export it to the Socrata database.
+Description: The purpose of this tool is to facilitate the
 
-The application requires the requests, sodapy and atd-mds-client libraries:
-    https://pypi.org/project/click/
-    https://pypi.org/project/requests/
-    https://pypi.org/project/sodapy/
+The application requires the boto3 and atd-mds-client libraries:
+    https://pypi.org/project/boto3/
     https://pypi.org/project/atd-mds-client/
 """
 
@@ -53,6 +50,7 @@ logging.disable(logging.DEBUG)
 
 # Let's initialize our configuration class
 mds_config = MDSConfig()
+
 # Then we need to initialize our AWS class with our configuration
 mds_aws = MDSAWS(
     aws_default_region=mds_config.ATD_MDS_REGION,
