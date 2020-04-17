@@ -1,9 +1,10 @@
 # atd-mds
 
-** UNDER CONSTRUCTION / WORK IN PROGRESS **
-
 This is an ETL process for MDS providers, its purpose is to facilitate
-the tracking and gathering of data, new or old.
+the gathering and tracking of MDS data, new or past. This ETL application
+consists of several tools that control different stages of the ETL process.
+The application is then bundled and published with Docker, and it is run
+with Airflow. 
 
 ## Getting Started
 
