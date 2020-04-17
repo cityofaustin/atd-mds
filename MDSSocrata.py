@@ -77,7 +77,7 @@ class MDSSocrata:
                 _and: { end_time: { _lt: "$time_max" }}
               }
           ) {
-            trip_id: id
+            trip_id: trip_id
             device_id: device { id }
             vehicle_type
             trip_duration
