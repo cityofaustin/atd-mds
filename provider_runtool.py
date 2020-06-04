@@ -47,6 +47,9 @@ ATD_MDS_DOCKER_IMAGE = "atddocker/atd-mds-etl:local"
     "--file", default=None, help="Use this flag to use a specific input file.",
 )
 @click.option(
+    "--docker-args", default="", help="Use this flag to specify hosts when running with docker mode enabled.",
+)
+@click.option(
     "--force",
     is_flag=True,
     help="Forces a schedule to run by changing its status to 0 before running.",
@@ -115,6 +118,7 @@ def run(**kwargs):
     force = kwargs.get("force", False)
     env_file = kwargs.get("env_file", None)
     docker_mode = kwargs.get("docker_mode", False)
+    docker_args = kwargs.get("docker_args", "")
 
     no_extact = kwargs.get("no_extract", False)
     no_syncdb = kwargs.get("no_sync_db", False)
@@ -129,7 +133,7 @@ def run(**kwargs):
         exit(1)
 
     if docker_mode:
-        docker_cmd = f"docker run -it --env-file {env_file} --rm {ATD_MDS_DOCKER_IMAGE} "
+        docker_cmd = f"docker run {docker_args} -it --env-file {env_file} --rm {ATD_MDS_DOCKER_IMAGE} "
     else:
         docker_cmd = ""
 
