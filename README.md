@@ -198,5 +198,13 @@ how to use this script and not make changes to the database.
 
 `--interval [integer]` The interval in hours. This flag indicates the number of hours the script needs to go back and retrieve from `--time-max`
 
+# Airflow
+
+When running in Airflow, make sure the image is present
+in the authorized image list: https://github.com/cityofaustin/atd-airflow/blob/master/docker-images.json
+
+Wherever Airflow is running, be sure that those images are present, alternatively make sure
+they are being built and deployed to the Docker Hub.
+
 # License
 This project is provided under the GPL 3.0 license.
