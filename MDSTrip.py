@@ -55,6 +55,8 @@ class MDSTrip:
         "census_geoid_end": {"nullable": True, "required": False, "type": "string"},
         # Other Fields
         "currency": {"nullable": True, "required": False, "type": "string"},
+        "start": {"nullable": True, "required": False, "type": "string"},
+        "end": {"nullable": True, "required": False, "type": "string"},
     }
 
     graphql_template_insert = """
