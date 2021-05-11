@@ -4,7 +4,12 @@ export ATD_IMAGE="atddocker/atd-mds-etl";
 #
 # We need to assign the name of the branch as the tag to be deployed
 #
-export ATD_TAG="${CIRCLE_BRANCH}";
+if [[ "${CIRCLE_BRANCH}" = "master" ]]; then
+  export ATD_TAG="staging";
+else
+  export ATD_TAG="${CIRCLE_BRANCH}";
+fi;
+
 
 #
 # Builds the docker image, tags it and publishes 
