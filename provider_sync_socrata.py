@@ -139,6 +139,7 @@ def run(**kwargs):
         final_status = -8
         if total_errors == 0:
             print("Socrata updates successful: %s" % str(saved))
+            print("Data inserted: \n %s" % json.dumps(trips["data"]["api_trips"]))
             final_status = 8
         else:
             print("Socrata updates failed: %s" % str(saved))
