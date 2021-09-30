@@ -116,7 +116,7 @@ class TestMDSSocrata:
 
     def test_translate_timestamp_success(self):
         dt = mds_socrata.translate_timestamp(1632842501000)
-        dts = dt.strftime("%Y-%m-%d %H:%M:%S")
+        dts = dt.strftime("%Y-%m-%dT%H:%M:%S")
 
         assert dt.year == 2021
         assert dt.month == 9
@@ -124,5 +124,19 @@ class TestMDSSocrata:
         assert dt.hour == 15
         assert dt.minute == 21
         assert dt.second == 41
-        assert dts == "2021-09-28 15:21:41"
+        assert dts == "2021-09-28T15:21:41"
 
+    def test_parse_datetimes_success(self):
+        test_data = mds_socrata.parse_datetimes(data={
+            "start_time": "2021-09-28 11:11:11",
+            "end_time": "2021-09-28 22:22:22",
+            "modified_date": "2021-09-28 00:00:00",
+        })
+
+        assert test_data["start_time"] == "2021-09-28T11:11:11"
+        assert test_data["end_time"] == "2021-09-28T22:22:22"
+        assert test_data["modified_date"] == "2021-09-28T00:00:00"
+        assert test_data["year"] == 2021
+        assert test_data["month"] == 9
+        assert test_data["hour"] == 22
+        assert test_data["day_of_week"] == 1  # Monday is 0
