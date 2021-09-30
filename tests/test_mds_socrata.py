@@ -2,6 +2,7 @@
 
 # Basic libraries
 import json
+import pdb
 from datetime import datetime
 
 # Import MDS Library for the TimeZone class
@@ -112,3 +113,16 @@ class TestMDSSocrata:
             assert False
         except:
             assert True
+
+    def test_translate_timestamp_success(self):
+        dt = mds_socrata.translate_timestamp(1632842501000)
+        dts = dt.strftime("%Y-%m-%d %H:%M:%S")
+
+        assert dt.year == 2021
+        assert dt.month == 9
+        assert dt.day == 28
+        assert dt.hour == 15
+        assert dt.minute == 21
+        assert dt.second == 41
+        assert dts == "2021-09-28 15:21:41"
+

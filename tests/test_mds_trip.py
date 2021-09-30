@@ -2,6 +2,7 @@
 
 # Basic libraries
 import json
+import pdb
 from datetime import datetime
 
 # Import MDS Library for the TimeZone class
@@ -280,3 +281,13 @@ class TestMDSTrip:
         )
 
         assert mds_trip.get_provider_name() is None
+
+    def test_translate_timestamp_success(self):
+        with open("tests/trip_sample_data_valid.json") as f:
+            trip_data = json.load(f)
+
+        mds_trip = MDSTrip(
+            mds_config=mds_config, mds_pip=mds_pip, mds_gql=mds_gql, trip_data=trip_data
+        )
+
+        assert "2021-09-28 15:21:41" == mds_trip.translate_timestamp(1632842501000)
