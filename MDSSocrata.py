@@ -152,12 +152,14 @@ class MDSSocrata:
         :param data:
         :return:
         """
-        fmt = "%Y-%m-%dT%H:%M:%S"
-        end_time = self.datetime_to_cst(data["end_time"])
-        data["start_time"] = self.datetime_to_cst(data["start_time"]).strftime(fmt)
-        data["end_time"] = end_time.strftime(fmt)
-        data["modified_date"] = self.datetime_to_cst(data["modified_date"]).strftime(
-            fmt
+        socrata_time_format = "%Y-%m-%dT%H:%M:%S"
+        end_time = self.translate_timestamp(data["end_time"])
+        data["start_time"] = self.translate_timestamp(data["start_time"]).strftime(
+            socrata_time_format
+        )
+        data["end_time"] = end_time.strftime(socrata_time_format)
+        data["modified_date"] = self.translate_timestamp(data["modified_date"]).strftime(
+            socrata_time_format
         )
         data["year"] = end_time.year
         data["month"] = end_time.month
@@ -189,8 +191,12 @@ class MDSSocrata:
         return data
 
     @staticmethod
-    def datetime_to_cst(timestamp):
+    def datetime_to_cst(timestamp) -> datetime:
         return parser.parse(timestamp).astimezone(tz.gettz("CST"))
+
+    @staticmethod
+    def translate_timestamp(timestamp) -> datetime:
+        return parser.parse(timestamp)
 
     @staticmethod
     def clean_trip_device_id(trip) -> dict:

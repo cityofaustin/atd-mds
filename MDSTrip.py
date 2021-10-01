@@ -278,11 +278,9 @@ class MDSTrip:
 
     @staticmethod
     def translate_timestamp(utc_unix_timestamp) -> str:
-        time = int(str(utc_unix_timestamp)[:10])
+        utc_unix_timestamp = int(str(utc_unix_timestamp)[:10])
         fmt = "%Y-%m-%d %H:%M:%S"
-        time_str = datetime.fromtimestamp(time).strftime(fmt)
-        timezone = reference.LocalTimezone().tzname(datetime.now())
-        return f"{time_str} {timezone}"
+        return datetime.utcfromtimestamp(utc_unix_timestamp).strftime(fmt)
 
     @staticmethod
     def get_current_datetime_utc() -> str:
