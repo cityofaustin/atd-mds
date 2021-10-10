@@ -1,5 +1,4 @@
 from dateutil import parser, tz
-from datetime import datetime, timedelta
 from string import Template
 
 from sodapy import Socrata
@@ -153,12 +152,17 @@ class MDSSocrata:
         :return:
         """
         fmt = "%Y-%m-%dT%H:%M:%S"
-        end_time = self.datetime_to_cst(data["end_time"])
-        data["start_time"] = self.datetime_to_cst(data["start_time"]).strftime(fmt)
+        # create datetime objects
+        end_time = parser.parse(data["end_time"])
+        start_time = parser.parse(data["start_time"])
+        modified_date = parser.parse(data["modified_date"])
+        # format datestrings
+        data["start_time"] = start_time.strftime(fmt)
         data["end_time"] = end_time.strftime(fmt)
-        data["modified_date"] = self.datetime_to_cst(data["modified_date"]).strftime(
-            fmt
-        )
+        data["modified_date"] = modified_date.strftime(fmt)
+        data["start_time_us_central"] = self.datetime_to_us_central(start_time).strftime(fmt)
+        data["end_time_us_central"] = self.datetime_to_us_central(end_time).strftime(fmt)
+        # create other date properties
         data["year"] = end_time.year
         data["month"] = end_time.month
         data["hour"] = end_time.hour
@@ -189,8 +193,8 @@ class MDSSocrata:
         return data
 
     @staticmethod
-    def datetime_to_cst(timestamp):
-        return parser.parse(timestamp).astimezone(tz.gettz("CST"))
+    def datetime_to_us_central(dt):
+        return dt.astimezone(tz.gettz("US/Central"))
 
     @staticmethod
     def clean_trip_device_id(trip) -> dict:
